@@ -24,10 +24,8 @@ jobs:
     - run: bash ./srcpkgs/ly/update.sh
     - run: bash ./srcpkgs/obsidian/update.sh
     - run: bash ./srcpkgs/openshift-oc/update.sh
-    - run: bash ./srcpkgs/pet/update.sh
     - run: bash ./srcpkgs/rebos/update.sh
     - run: bash ./srcpkgs/river-status/update.sh
-    # - run: bash ./srcpkgs/river-bedload/update.sh
     # - run: bash ./srcpkgs/shikane/update.sh
     - run: bash ./srcpkgs/vesktop/update.sh
     - run: bash ./srcpkgs/wideriver/update.sh
