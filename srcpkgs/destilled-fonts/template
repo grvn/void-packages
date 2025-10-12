@@ -1,10 +1,11 @@
 # Template file for 'destilled-fonts'
 pkgname=destilled-fonts
-version=1.0.0
+version=1.1.0
 revision=1
 _nerd_font_version=3.3.0
 _redhat_font_version=4.1.0
 _maple_font_version=7.0
+_suse_font_version=2.001
 create_wrksrc=yes
 short_desc="mix av fonts jag vill ha"
 maintainer="Rickard <@>"
@@ -14,6 +15,7 @@ distfiles="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v${_nerd_font_
  https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v${_nerd_font_version}/LICENSE"
 distfiles+=" https://github.com/RedHatOfficial/RedHatFont/archive/refs/tags/${_redhat_font_version}.tar.gz>redhat-${_redhat_font_version}.tar.gz"
 distfiles+=" https://github.com/subframe7536/maple-font/releases/download/v${_maple_font_version}/MapleMonoNL-NF.zip>maplemono-${_maple_font_version}.zip"
+distfiles+=" https://github.com/SUSE/suse-font/releases/download/v${_suse_font_version}/suse-font-v${_suse_font_version}.zip"
 
 _nerd_fonts=(
   'FiraCode'
@@ -29,13 +31,14 @@ _symbol_font='NerdFontsSymbolsOnly'
 _fonts=("${_nerd_fonts[@]}" "${_symbol_font}")
 
 for f in "${_fonts[@]}"; do
-	distfiles+=" https://github.com/ryanoasis/nerd-fonts/releases/download/v${_nerd_font_version}/${f}.tar.xz>${f}-${_nerd_font_version}.tar.xz"
+  distfiles+=" https://github.com/ryanoasis/nerd-fonts/releases/download/v${_nerd_font_version}/${f}.tar.xz>${f}-${_nerd_font_version}.tar.xz"
 done
 
 checksum="13de41731e7c919ac76bfc042dcae865763a5b30e01414253825d1399af7f5cf
  1f6ad4edae6479aaace3112ede5279a23284ae54b2a34db66357aef5f64df160
  c620b2b84df0f7bf8c176f74881b7614a835ed18189d28bb1a9945c74488e5b5
  93e16c07195985e680cc915da5d2adaf83544e74ae7ba18d80d6bf53907a74f2
+ 5cfa32328cc408a31459fdeacee623684d82ff2b3d84ca80cf5b4ff7b8ff8221
  7c64c44d7e530b25faf23904e135e9d1ff0339a92ee64e35e7da9116aa48af67
  d3d2a8ec7f30513e52412f8907ec4838fd5843323b9e2a5a841de6531aff9a3a
  f797524e4b99191a5f35614c6fe48e96f7b8872712e2943a2aaf59cda086e909
@@ -46,56 +49,70 @@ checksum="13de41731e7c919ac76bfc042dcae865763a5b30e01414253825d1399af7f5cf
  f61229287e333e575f134923fd46da32fe4e01120a2a74a17d2d9b7591a9b87e
  8b5ecbe2612cb37d75e2645f7644876bc38960574909b1c01c002d0e8d33deb3"
 
-
 do_extract() {
-	vsrccopy 10-nerd-font-symbols.conf "${wrksrc}"
-	vsrccopy LICENSE "${wrksrc}"
-	for f in "${_fonts[@]}"; do
-		vsrcextract --no-strip-components -C "${wrksrc}/${f}" "${f}-${_nerd_font_version}.tar.xz"
-	done
+  vsrccopy 10-nerd-font-symbols.conf "${wrksrc}"
+  vsrccopy LICENSE "${wrksrc}"
+  for f in "${_fonts[@]}"; do
+    vsrcextract --no-strip-components -C "${wrksrc}/${f}" "${f}-${_nerd_font_version}.tar.xz"
+  done
   vsrcextract --strip-components=1 -C "${wrksrc}/RedHatFont" "redhat-${_redhat_font_version}.tar.gz"
   vsrcextract --no-strip-components -C "${wrksrc}/MapleMono" "maplemono-${_maple_font_version}.zip"
+  vsrcextract --strip-components=1 -C "${wrksrc}/SUSEFont" "suse-font-v${_suse_font_version}.zip"
 }
 
 do_install() {
-	vmkdir usr/share/fonts/NerdFonts/otf
-	vmkdir usr/share/fonts/NerdFonts/ttf/symbols
+  vmkdir usr/share/fonts/MapleMono/ttf
+  vmkdir usr/share/fonts/NerdFonts/otf
+  vmkdir usr/share/fonts/NerdFonts/ttf/symbols
   vmkdir usr/share/fonts/RedHatFont/otf
   vmkdir usr/share/fonts/RedHatFont/ttf
-  vmkdir usr/share/fonts/MapleMono/ttf
+  vmkdir usr/share/fonts/SUSEFont/otf
+  vmkdir usr/share/fonts/SUSEFont/ttf
 
-	for family in "${_nerd_fonts[@]}"; do
-		for type in otf ttf; do
-			_f_arr=( ${family}/*.${type} )
-			if [ ${#_f_arr[@]} -gt 1 ]; then
-				for f in "${_f_arr[@]}"; do
-					vinstall "${f}" 644 "/usr/share/fonts/NerdFonts/${type}"
-				done
-			fi
-		done
-	done
+  for family in "${_nerd_fonts[@]}"; do
+    for type in otf ttf; do
+      _f_arr=( ${family}/*.${type} )
+      if [ ${#_f_arr[@]} -gt 1 ]; then
+        for f in "${_f_arr[@]}"; do
+          vinstall "${f}" 644 "usr/share/fonts/NerdFonts/${type}"
+        done
+      fi
+    done
+  done
 
-	for f in ${_symbol_font}/*.ttf; do
-		vinstall "${f}" 644 usr/share/fonts/NerdFonts/ttf/symbols
-	done
-	vinstall 10-nerd-font-symbols.conf 644 usr/share/fontconfig/conf.avail
+  for f in ${_symbol_font}/*.ttf; do
+    vinstall "${f}" 644 usr/share/fonts/NerdFonts/ttf/symbols
+  done
+  vinstall 10-nerd-font-symbols.conf 644 usr/share/fontconfig/conf.avail
 
   for family in Mono "Proportional/RedHatDisplay" "Proportional/RedHatText"; do
     for type in otf ttf; do
       _f_arr=( RedHatFont/fonts/${family}/${type}/*.${type} )
       if [ ${#_f_arr[@]} -gt 1 ]; then
         for f in "${_f_arr[@]}"; do
-          vinstall "${f}" 644 "/usr/share/fonts/RedHatFont/${type}"
+          vinstall "${f}" 644 "usr/share/fonts/RedHatFont/${type}"
         done
       fi
     done
   done
 
   for f in MapleMono/*.ttf; do
-		vinstall "${f}" 644 usr/share/fonts/MapleMono/ttf
-	done
+    vinstall "${f}" 644 usr/share/fonts/MapleMono/ttf
+  done
 
+  for type in otf ttf; do
+    _f_arr=( SUSEFont/fonts/${type}/*.${type} )
+    if [ ${#_f_arr[@]} -gt 1 ]; then
+      for f in "${_f_arr[@]}"; do
+        vinstall "${f}" 644 "usr/share/fonts/SUSEFont/${type}"
+      done
+    fi
+  done
+}
+
+post_install() {
   vlicense RedHatFont/LICENSE
   vlicense MapleMono/LICENSE.txt
-	vlicense LICENSE
+  vlicense SUSEFont/OFL.txt
+  vlicense LICENSE
 }
