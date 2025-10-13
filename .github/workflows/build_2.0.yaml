@@ -17,7 +17,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  prepare:
+    name: Create the source
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout void-packages
+      uses: actions/checkout@v4
+      with:
+        repository: void-linux/void-packages
+        ref: master
+
+    - name: Merge this repository into void-linux/void-packages
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --global --add safe.directory "*"
+        git remote add -f grvn https://github.com/grvn/void-packages.git
+        git merge --no-commit --strategy-option=theirs --allow-unrelated-histories -Xignore-space-change grvn/main
+        mkdir -p hostdir/binpkgs
+        gh release download --pattern "*${ARCH}*" --dir hostdir/binpkgs --repo grvn/void-packages || true
+        if [ "$ARCH" = x86_64 ]; then
+          rm --force hostdir/binpkgs/*x86_64-musl*
+        fi
+        rm --force hostdir/binpkgs/*.xbps.sig2
+
+    - name: Upload source
+      uses: actions/upload-artifact@v4
+      with:
+        name: source
+        path: .
+
   init:
+    needs:
+      - prepare
     name: Figure out what needs to be built
     runs-on: ubuntu-latest
     outputs:
@@ -26,8 +60,8 @@ jobs:
       image: ghcr.io/void-linux/void-musl-full:20250901R1
       options: --platform linux/amd64
       env:
-        ARCH: '${{ matrix.arch }}'
-        XBPS_TARGET_ARCH: ${{ matrix.arch }}
+        ARCH: x86_64-musl
+        XBPS_TARGET_ARCH: x86_64-musl
         REPO_OWNER: "${{ github.repository_owner }}"
         REPO_NAME: "${{ github.event.repository.name }}"
     if: ${{ github.ref == 'refs/heads/main' }}
@@ -38,27 +72,11 @@ jobs:
           mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps && xbps-install -yu && xbps-install -y bash curl git github-cli
 
-      - name: Checkout void-packages
-        uses: actions/checkout@v4
+      - name: Download source
+        uses: actions/download-artifact@v4
         with:
-          repository: void-linux/void-packages
-          ref: master
-
-      - name: Merge this repository into void-linux/void-packages
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global --add safe.directory "*"
-          git remote add -f grvn https://github.com/grvn/void-packages.git
-          git merge --no-commit --strategy-option=theirs --allow-unrelated-histories -Xignore-space-change grvn/main
-          mkdir -p hostdir/binpkgs
-          gh release download --pattern "*${ARCH}*" --dir hostdir/binpkgs --repo grvn/void-packages || true
-          if [ "$ARCH" = x86_64 ]; then
-            rm --force hostdir/binpkgs/*x86_64-musl*
-          fi
-          rm --force hostdir/binpkgs/*.xbps.sig2
+          name: source
+          path: .
 
       - name: Identify changes to build
         id: find-packages
