@@ -11,11 +11,8 @@ CURRENT_VERSION=$(grep -E '^version=' ${__dir}/template | cut -d= -f2)
 printf "Latest version is: %s\nLatest built version is: %s\n" "${VERSION}" "${CURRENT_VERSION}"
 [ "${CURRENT_VERSION}" = "${VERSION}" ] && printf "No new version to release\n" && exit 0
 
-# No preprepped checksum files, need to download the binary and calculate it myself
-gh release download -R zen-browser/desktop -p "zen.linux-x86_64.tar.xz" --output "zen.linux-x86_64.tar.xz"
-export SHA256=$(sha256sum ./zen.linux-x86_64.tar.xz | cut -d ' ' -f1 )
-rm ./zen.linux-x86_64.tar.xz
-[[ ! ${SHA256} =~ ^[a-z0-9]+$ ]] && printf "got junk instead of sha256\n" && exit 1
+export SHA256=$(gh release view ${LATEST_VERSION} -R zen-browser/desktop --json assets --jq '.assets[] | select(.name=="zen.linux-x86_64.tar.xz") | .digest' | cut -d":" -f2)
+[[ ! ${SHA256} =~ ^[a-z0-9]+$ ]] && printf "got junk instead of checksum\n" && exit 1
 
 envsubst '${SHA256} ${VERSION}' < ${__dir}/.template > ${__dir}/template
 
