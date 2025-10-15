@@ -42,7 +42,7 @@ jobs:
           rm --force hostdir/binpkgs/*x86_64-musl*
         fi
         rm --force hostdir/binpkgs/*.xbps.sig2
-        find -mindepth 1 -maxdepth 1 -exec tar cvpzf source.tgz {} \+
+        find -mindepth 1 -maxdepth 1 -exec tar cpzf source.tgz {} \+
 
     - name: Upload source
       uses: actions/upload-artifact@v4
@@ -73,12 +73,7 @@ jobs:
       - name: Prep container
         run: |
           mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
-          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y bash curl git github-cli tar
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y bash curl git github-cli tar nodejs
 
       - name: Download source
         uses: actions/download-artifact@v4
@@ -88,7 +83,7 @@ jobs:
 
       - name: unpack
         run: |
-          tar -xzvf source -C .
+          tar -xzf source -C .
           rm source
 
       - name: Identify changes to build
