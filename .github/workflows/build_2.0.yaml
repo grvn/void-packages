@@ -87,6 +87,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          git config --global --add safe.directory /__w/void-packages/void-packages
           latest_name=$(echo "Initial Commit")
           latest_sha=$(git rev-list --max-count=1 ${latest_name} 2>/dev/null || git rev-list --max-parents=0 grvn/main)
           echo "Latest Tag Name: ${latest_name}"
