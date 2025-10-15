@@ -47,7 +47,6 @@ jobs:
     - name: Upload source
       uses: actions/upload-artifact@v4
       with:
-        name: source
         path: source.tgz
         retention-days: 1
         # include-hidden-files: true
@@ -60,7 +59,7 @@ jobs:
     outputs:
       matrix: ${{ steps.find-packages.outputs.matrix }}
     container:
-      image: ghcr.io/void-linux/void-musl-full:20250901R1
+      image: ghcr.io/void-linux/void-glibc-full:20250901R1
       options: --platform linux/amd64
       env:
         ARCH: x86_64-musl
@@ -77,14 +76,11 @@ jobs:
 
       - name: Download source
         uses: actions/download-artifact@v4
-        with:
-          name: source
-          path: .
 
       - name: unpack
         run: |
-          tar -xzf source -C .
-          rm source
+          tar xzf artifact/source.tgz -C .
+          rm -rf artifact
 
       - name: Identify changes to build
         id: find-packages
