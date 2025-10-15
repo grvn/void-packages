@@ -72,7 +72,7 @@ jobs:
       - name: Prep container
         run: |
           mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
-          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y bash curl git github-cli tar
+          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y bash curl git github-cli tar jq sudo
           # create non-root user
           useradd -G xbuilder -M builder
 
