@@ -120,11 +120,10 @@ jobs:
           # - arch: x86_64-musl
           #   libc: musl
     container:
-      # image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
-      image: 'ghcr.io/void-linux/void-buildroot-${{ matrix.libc }}:20250616R2'
-      # options: --platform linux/amd64 --privileged
-      # volumes:
-      #   - /dev:/dev
+      image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
+      options: --platform linux/amd64 --privileged
+      volumes:
+        - /dev:/dev
       env:
         ARCH: '${{ matrix.arch }}'
         XBPS_TARGET_ARCH: ${{ matrix.arch }}
@@ -137,6 +136,7 @@ jobs:
         run: |
           mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash git tar
+          useradd -G xbuilder -M builder -s $(which bash)
 
       - name: Download source
         uses: actions/download-artifact@v4
@@ -148,23 +148,30 @@ jobs:
 
       - name: Setup void-packages
         run: |
+          chown -R builder:builder .
           echo XBPS_BUILD_ENVIRONMENT=void-packages-ci >> etc/conf
           echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
           echo XBPS_CHROOT_CMD=uchroot >> etc/conf
 
-          # yes | sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
+          yes | sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
 
       # -------------------- Packages to build --------------------
 
       - name: build pkg
+        id: build-package
         run: |
-          ./xbps-src pkg -j$(nproc) -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} "${{ matrix.package }}" || printf "Failed building ${pkg}!\n"
+          sudo -Eu builder ./xbps-src pkg -j$(nproc) -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} "${{ matrix.package }}" || printf "Failed building ${pkg}!\n"
+          printf "pkg=%s-%s_%s.%s.xbps\n" "${{ matrix.package }}" \
+            "$(sudo -Eu builder ./xbps-src -a x86_64 show "${{ matrix.package }}" | grep 'version' | cut -d":" -f2 | tr -d '[:space:]')" \
+            "$(sudo -Eu builder ./xbps-src -a x86_64 show "${{ matrix.package }}" | grep 'revision' | cut -d":" -f2 | tr -d '[:space:]')" \
+            "$(uname -m)" \
+            >> $GITHUB_OUTPUT
 
       - name: Save pkg as artifact
         uses: actions/upload-artifact@v4
         with:
           name: void-${{ matrix.package }}
-          path: ./hostdir/binpkgs
+          path: ./hostdir/binpkgs/${{ steps.build-package.outputs.pkg }}
 
       # -----------------------------------------------------------
 
