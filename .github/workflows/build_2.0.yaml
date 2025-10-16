@@ -98,7 +98,7 @@ jobs:
           chown -R builder:builder .
 
           git diff-tree -r --no-renames --name-only --diff-filter=AM ${latest_sha} ${SHA} -- 'srcpkgs/**' \
-          | cut -d/ -f 2 | uniq | xargs sudo -Eu builder ./xbps-src sort-dependencies | jq -R | jq -cs '{"arch":["x86_64","x86_64-musl"],"include":[{"arch":"x86_64","libc":"glibc"},{"arch":"x86_64-musl","libc":"musl"}], "packages": . }' | tee /tmp/templates.json
+          | cut -d/ -f 2 | uniq | xargs sudo -Eu builder ./xbps-src sort-dependencies | jq -R | jq -cs | tee /tmp/templates.json
           echo "matrix=$(cat /tmp/templates.json)" >> $GITHUB_OUTPUT
 
   build:
@@ -110,15 +110,14 @@ jobs:
       contents: write
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.init.outputs.matrix) }}
-      # matrix:
-      #   # packages: ${{ fromJson(needs.init.outputs.matrix) }}
-      #   arch: [x86_64, x86_64-musl]
-      #   include:
-      #     - arch: x86_64
-      #       libc: glibc
-      #     - arch: x86_64-musl
-      #       libc: musl
+      matrix:
+        packages: ${{ fromJson(needs.init.outputs.matrix) }}
+        arch: [x86_64, x86_64-musl]
+        include:
+          - arch: x86_64
+            libc: glibc
+          - arch: x86_64-musl
+            libc: musl
     container:
       image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
       options: --platform linux/amd64 --privileged
