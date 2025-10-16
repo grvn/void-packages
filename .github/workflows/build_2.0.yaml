@@ -110,7 +110,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        packages: ${{ fromJson(needs.init.outputs.matrix) }}
+        package: ${{ fromJson(needs.init.outputs.matrix) }}
         arch:
           - x86_64
           # - x86_64-musl
@@ -153,7 +153,7 @@ jobs:
           echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
           echo XBPS_CHROOT_CMD=uchroot >> etc/conf
 
-          yes | sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
+          # yes | sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
 
       # -------------------- Packages to build --------------------
 
@@ -162,8 +162,8 @@ jobs:
         run: |
           sudo -Eu builder ./xbps-src pkg -j$(nproc) -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} "${{ matrix.package }}" || printf "Failed building ${pkg}!\n"
           printf "pkg=%s-%s_%s.%s.xbps\n" "${{ matrix.package }}" \
-            "$(sudo -Eu builder ./xbps-src -a x86_64 show "${{ matrix.package }}" | grep 'version' | cut -d":" -f2 | tr -d '[:space:]')" \
-            "$(sudo -Eu builder ./xbps-src -a x86_64 show "${{ matrix.package }}" | grep 'revision' | cut -d":" -f2 | tr -d '[:space:]')" \
+            "$(sudo -Eu builder ./xbps-src -a ${{ matrix.arch }} show "${{ matrix.package }}" | grep 'version' | cut -d":" -f2 | tr -d '[:space:]')" \
+            "$(sudo -Eu builder ./xbps-src -a ${{ matrix.arch }} show "${{ matrix.package }}" | grep 'revision' | cut -d":" -f2 | tr -d '[:space:]')" \
             "$(uname -m)" \
             >> $GITHUB_OUTPUT
 
@@ -195,10 +195,6 @@ jobs:
         with:
           path: artifacts
           pattern: void-*
-
-
-
-
 
       - name: Clean & sign
         working-directory: ./hostdir/binpkgs
