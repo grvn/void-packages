@@ -121,7 +121,7 @@ jobs:
           #   libc: musl
     container:
       # image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
-      image: 'ghcr.io/void-linux/void-buildroot-${{ matrix.libc }}: 20250616R2'
+      image: 'ghcr.io/void-linux/void-buildroot-${{ matrix.libc }}:20250616R2'
       # options: --platform linux/amd64 --privileged
       # volumes:
       #   - /dev:/dev
