@@ -197,7 +197,7 @@ jobs:
           pattern: void-*
 
       - name: Clean & sign
-        working-directory: ./hostdir/binpkgs
+        # working-directory: ./hostdir/binpkgs
         # env:
         #   PRIVKEY: ${{ secrets.PRIV_KEY }}
         #   XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
