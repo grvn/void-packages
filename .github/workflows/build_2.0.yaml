@@ -137,7 +137,6 @@ jobs:
         run: |
           mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash git tar
-          useradd -G xbuilder -M builder -s $(which bash)
 
       - name: Download source
         uses: actions/download-artifact@v4
@@ -149,7 +148,6 @@ jobs:
 
       - name: Setup void-packages
         run: |
-          chown -R builder:builder .
           echo XBPS_BUILD_ENVIRONMENT=void-packages-ci >> etc/conf
           echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
           echo XBPS_CHROOT_CMD=uchroot >> etc/conf
@@ -160,7 +158,7 @@ jobs:
 
       - name: build pkg
         run: |
-          sudo -Eu builder ./xbps-src pkg -j$(nproc) -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} "${{ matrix.package }}" || printf "Failed building ${pkg}!\n"
+          ./xbps-src pkg -j$(nproc) -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} "${{ matrix.package }}" || printf "Failed building ${pkg}!\n"
 
       - name: Save pkg as artifact
         uses: actions/upload-artifact@v4
