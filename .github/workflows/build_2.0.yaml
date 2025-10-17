@@ -90,7 +90,7 @@ jobs:
 
           chown -R builder:builder .
 
-          echo "${change}" | sudo -Eu builder xargs ./xbps-src sort-dependencies | jq -R | jq -cs > /tmp/matrix.json
+          echo "${change}" | sudo -Eu builder xargs ./xbps-src sort-dependencies | jq -R | jq -cs | tee /tmp/matrix.json
 
           echo "matrix=$(cat /tmp/matrix.json)" >> $GITHUB_OUTPUT
 
@@ -138,7 +138,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: masterdir-${{ matrix.arch }}
-          key: masterdir-${{ matrix.arch }}-${{ github.sha }}
+          key: masterdir-${{ matrix.package }}-${{ matrix.arch }}-${{ github.sha }}
           restore-keys: |
             masterdir-${{ matrix.arch }}-
 
@@ -146,7 +146,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: hostdir/binpkgs
-          key: binpkgs-${{ matrix.arch }}-${{ github.sha }}
+          key: binpkgs-${{ matrix.package }}-${{ matrix.arch }}-${{ github.sha }}
           restore-keys: |
             binpkgs-${{ matrix.arch }}-
 
@@ -191,6 +191,11 @@ jobs:
       options: --platform linux/amd64
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
+      - name: Prep container
+        run: |
+          mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash git tar
+          useradd -G xbuilder -M builder -s $(which bash)
       - uses: actions/download-artifact@v4
         with:
           path: repo
@@ -202,7 +207,6 @@ jobs:
           PRIVKEY: ${{ secrets.PRIV_KEY }}
           XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
         run: |
-          cd repo
           xbps-rindex --remove-obsoletes ${PWD}
           printf "%s\n" "${PRIVKEY}" > key.pem
           xbps-rindex --privkey key.pem --sign --signedby "${{ github.repository }}-github-actions" --verbose ${PWD}
