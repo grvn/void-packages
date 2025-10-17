@@ -88,6 +88,8 @@ jobs:
             change="$change ${{ github.event.inputs.force_package }}"
           fi
 
+          chown -R builder:builder .
+
           echo "${change}" | sudo -Eu builder xargs ./xbps-src sort-dependencies | jq -R | jq -cs > /tmp/matrix.json
 
           echo "matrix=$(cat /tmp/matrix.json)" >> $GITHUB_OUTPUT
