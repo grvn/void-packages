@@ -181,7 +181,7 @@ jobs:
     needs:
       - build
     container:
-      image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
+      image: ghcr.io/void-linux/void-musl-full:20250901R1
       options: --platform linux/amd64
       env:
         ARCH: '${{ matrix.arch }}'
@@ -190,6 +190,20 @@ jobs:
         REPO_NAME: "${{ github.event.repository.name }}"
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
+      - name: Prep container
+        run: |
+          mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash git tar
+          useradd -G xbuilder -M builder -s $(which bash)
+
+      - name: Download source
+        uses: actions/download-artifact@v4
+
+      - name: unpack
+        run: |
+          tar xzf artifact/source.tgz -C .
+          rm -rf artifact
+
       - name: get the artifacts
         uses: actions/download-artifact@v4
         with:
@@ -203,3 +217,4 @@ jobs:
         #   XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
         run: |
           ls  ./artifacts/*
+
