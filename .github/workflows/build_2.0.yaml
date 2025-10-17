@@ -79,6 +79,7 @@ jobs:
         # env:
         #   GH_TOKEN: ${{ github.token }}
         run: |
+          git config --global --add safe.directory /__w/void-packages/void-packages
           latest_sha=$(git rev-list --max-parents=0 HEAD)
           change=$(git diff-tree -r --no-renames --name-only --diff-filter=AM ${latest_sha} ${SHA} -- 'srcpkgs/**' | cut -d/ -f2 | uniq )
 
