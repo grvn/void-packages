@@ -68,6 +68,7 @@ jobs:
         run: |
           mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps && xbps-install -yu && xbps-install -y bash curl git github-cli tar jq sudo
+          useradd -G xbuilder -M builder -s $(which bash)
 
       - uses: actions/download-artifact@v4
         with:
@@ -87,7 +88,7 @@ jobs:
             change="$change ${{ github.event.inputs.force_package }}"
           fi
 
-          echo "${change}" | xargs ./xbps-src sort-dependencies | jq -R | jq -cs > /tmp/matrix.json
+          echo "${change}" | sudo -Eu builder xargs ./xbps-src sort-dependencies | jq -R | jq -cs > /tmp/matrix.json
 
           echo "matrix=$(cat /tmp/matrix.json)" >> $GITHUB_OUTPUT
 
@@ -119,6 +120,12 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
+      - name: Prep container
+        run: |
+          mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash git tar
+          useradd -G xbuilder -M builder -s $(which bash)
+
       - uses: actions/download-artifact@v4
         with:
           name: source
@@ -143,12 +150,13 @@ jobs:
 
       - name: Setup void-packages
         run: |
+          chown -R builder:builder .
           echo XBPS_BUILD_ENVIRONMENT=ci >> etc/conf
           echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
           echo XBPS_CHROOT_CMD=uchroot >> etc/conf
 
           if [ ! -d masterdir-${{ matrix.arch }} ]; then
-            yes | ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
+            yes | sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
           fi
 
       # -------------------- Packages to build --------------------
@@ -156,7 +164,7 @@ jobs:
       - id: build-package
         run: |
           set -e
-          ./xbps-src pkg -j$(nproc) -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} "${{ matrix.package }}"
+          sudo -Eu builder ./xbps-src pkg -j$(nproc) -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} "${{ matrix.package }}"
           pkgfile=$(ls hostdir/binpkgs/${{ matrix.package }}-*.xbps | head -n1 )
           echo "pkg=$(basename $pkgfile)" >> $GITHUB_OUTPUT
 
