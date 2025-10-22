@@ -56,17 +56,19 @@ jobs:
       with:
         path: ./srcpkgs
     - name: commit updates
+      id: check-updates
       run: |
         if [[ -n "$(git status --porcelain)" ]]; then
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit --all --message "Automated update"
-          git push origin ${{ github.ref }}
+          echo "has_updates=true" >> "$GITHUB_OUTPUT"
         else
-          echo "No new updates" && exit 0
+          echo "No new updates"
+          echo "has_updates=false" >> "$GITHUB_OUTPUT"
         fi
     - name: push updates
-      if: success()
+      if: steps.check-updates.outputs.has_updates == 'true'
       uses: ad-m/github-push-action@v1.0.0
       with:
         github_token: ${{ secrets.PULL_PUSH }}
