@@ -15,13 +15,13 @@ jobs:
       matrix:
         pkg:
           - brave-browser
-          - lazyssh
+          # - lazyssh
           - ly
           - obsidian
           - openshift-oc
           - rebos
           - river-status
-          - shikane
+          # - shikane
           - vesktop
           - wideriver
           - zen-browser
@@ -47,21 +47,27 @@ jobs:
     needs: update-versions
     if: always()
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-          token: ${{ secrets.PULL_PUSH }}
-      - uses: actions/download-artifact@v4
-        with:
-          path: ./srcpkgs
-      - name: commit & push updates
-        run: |
-          if [[ -n "$(git status --porcelain)" ]]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit --all --message "Automated update"
-            git push origin ${{ github.ref }}
-          else
-            echo "No new updates"
-          fi
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+        fetch-depth: 0
+        token: ${{ secrets.PULL_PUSH }}
+    - uses: actions/download-artifact@v4
+      with:
+        path: ./srcpkgs
+    - name: commit updates
+      run: |
+        if [[ -n "$(git status --porcelain)" ]]; then
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --all --message "Automated update"
+          git push origin ${{ github.ref }}
+        else
+          echo "No new updates" && exit 0
+        fi
+    - name: push updates
+      if: success()
+      uses: ad-m/github-push-action@v1.0.0
+      with:
+        github_token: ${{ secrets.PULL_PUSH }}
+        branch: ${{ github.ref }}
