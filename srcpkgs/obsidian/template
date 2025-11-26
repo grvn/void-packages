@@ -1,6 +1,6 @@
 # Template file for 'obsidian'
 pkgname=obsidian
-version=1.10.3
+version=1.10.6
 revision=1
 archs="x86_64"
 hostmakedepends="tar"
@@ -9,7 +9,7 @@ maintainer="Rickard <@>"
 license="custom:Commercial"
 homepage="https://github.com/obsidianmd/obsidian-releases"
 distfiles="https://github.com/obsidianmd/obsidian-releases/releases/download/v${version}/obsidian-${version}.tar.gz"
-checksum=cc8f021211ede952067e1e248f863175fc493c969fee684c567338e5399aa08d
+checksum=1596c81d8645ff9f6506b5b3e1a6963250d9372ceb58eb037551e53bc1b16f72
 
 do_install() {
   install -dm755 "${DESTDIR}/opt/${pkgname}" "${DESTDIR}/usr/bin" "${DESTDIR}/usr/share/applications" "${DESTDIR}/usr/share/pixmaps"
