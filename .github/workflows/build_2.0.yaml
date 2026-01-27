@@ -112,7 +112,7 @@ jobs:
           # - arch: x86_64-musl
           #   libc: musl
     container:
-      image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250616R1
+      image: ghcr.io/void-linux/void-musl-full:20250616R1
       options: --platform linux/amd64 --privileged
       volumes:
         - /dev:/dev
