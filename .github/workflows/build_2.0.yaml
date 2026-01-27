@@ -112,7 +112,7 @@ jobs:
           # - arch: x86_64-musl
           #   libc: musl
     container:
-      image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250616R1
+      image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
       options: --platform linux/amd64 --privileged
       volumes:
         - /dev:/dev
@@ -159,7 +159,7 @@ jobs:
           echo XBPS_MAKEJOBS="$(nproc)" >> etc/conf
 
           if [ ! -d masterdir-${{ matrix.arch }} ]; then
-            yes | sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
+            sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
           fi
 
       # -------------------- Packages to build --------------------
