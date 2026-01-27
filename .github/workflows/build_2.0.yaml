@@ -112,10 +112,11 @@ jobs:
           # - arch: x86_64-musl
           #   libc: musl
     container:
-      image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
-      options: --platform linux/amd64 --privileged
-      volumes:
-        - /dev:/dev
+      # image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
+      # options: --platform linux/amd64 --privileged
+      # volumes:
+      #   - /dev:/dev
+      image: ghcr.io/void-linux/void-buildroot-${{ matrix.libc }}:latest
       env:
         ARCH: ${{ matrix.arch }}
         XBPS_TARGET_ARCH: ${{ matrix.arch }}
@@ -156,6 +157,7 @@ jobs:
           echo XBPS_BUILD_ENVIRONMENT=ci >> etc/conf
           echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
           echo XBPS_CHROOT_CMD=uchroot >> etc/conf
+          echo XBPS_MAKEJOBS="$(nproc)" >> etc/conf
 
           if [ ! -d masterdir-${{ matrix.arch }} ]; then
             yes | sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
