@@ -112,7 +112,7 @@ jobs:
           # - arch: x86_64-musl
           #   libc: musl
     container:
-      image: ghcr.io/void-linux/void-musl-full:20250616R1
+      image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250616R1
       options: --platform linux/amd64 --privileged
       volumes:
         - /dev:/dev
@@ -126,7 +126,7 @@ jobs:
         run: |
           mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash git tar
-          useradd -G xbuilder -M builder -s $(which bash)
+          useradd -G xbuilder -M builder
 
       - uses: actions/download-artifact@v4
         with:
