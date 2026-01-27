@@ -152,8 +152,15 @@ jobs:
 
       - name: Setup void-packages
         run: |
-          chown -R builder:builder . &&
-          sudo -Eu builder ./skripts/build_setup.sh
+          chown -R builder:builder .
+          echo XBPS_BUILD_ENVIRONMENT=ci >> etc/conf
+          echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
+          echo XBPS_CHROOT_CMD=uchroot >> etc/conf
+          echo XBPS_MAKEJOBS="$(nproc)" >> etc/conf
+
+          if [ ! -d masterdir-${{ matrix.arch }} ]; then
+            sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
+          fi
 
       # -------------------- Packages to build --------------------
 
