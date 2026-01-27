@@ -153,7 +153,7 @@ jobs:
       - name: Setup void-packages
         run: |
           chown -R builder:builder . &&
-          sudo -Eu builder skripts/build_setup.sh
+          sudo -Eu builder ./skripts/build_setup.sh
 
       # -------------------- Packages to build --------------------
 
