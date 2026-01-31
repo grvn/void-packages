@@ -168,7 +168,7 @@ jobs:
           XBPS_MAKEJOBS=$(nproc)
           EOF
 
-          sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }}-${{ matrix.package }} -A ${{ matrix.arch }} binary-bootstrap
+          ln -s / masterdir
 
       # -------------------- Packages to build --------------------
 
