@@ -22,6 +22,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# ------------------------------------------------------------
+# 1. PREPARE — merge repo into void-packages and archive
+# ------------------------------------------------------------
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -53,6 +56,9 @@ jobs:
           retention-days: 1
           # include-hidden-files: true
 
+# ------------------------------------------------------------
+# 2. INIT — detect changed packages and produce matrix
+# ------------------------------------------------------------
   init:
     needs: prepare
     runs-on: ubuntu-latest
@@ -96,14 +102,21 @@ jobs:
 
           chown -R builder:builder .
 
-          echo "${change}" | sudo -Eu builder xargs ./xbps-src sort-dependencies | jq -R | jq -cs | tee /tmp/matrix.json
+          if [ -z "$change" ]; then
+            echo "[]" > /tmp/matrix.json
+          else
+            echo "$change" | sudo -Eu builder xargs ./xbps-src sort-dependencies | jq -R | jq -cs | tee /tmp/matrix.json
+          fi
 
           echo "matrix=$(cat /tmp/matrix.json)" >> $GITHUB_OUTPUT
 
+# ------------------------------------------------------------
+# 3. BUILD — parallel builds, isolated dirs, upload artifacts
+# ------------------------------------------------------------
   build:
     needs: init
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' && needs.init.outputs.matrix != '[]' }}
     # permissions:
     #   contents: write
     strategy:
@@ -133,7 +146,7 @@ jobs:
           xbps-install -Syu xbps
           xbps-install -yu
           xbps-install -y sudo bash git tar proot
-          useradd -G xbuilder -M builder
+          useradd -G xbuilder -M builder -s /bin/bash
 
       - uses: actions/download-artifact@v4
         with:
@@ -141,30 +154,19 @@ jobs:
 
       - run: tar xzf source.tgz
 
-      - name: Cache masterdir
-        uses: actions/cache@v4
-        with:
-          path: masterdir-${{ matrix.arch }}
-          key: masterdir-${{ matrix.package }}-${{ matrix.arch }}-${{ github.sha }}
-          restore-keys: masterdir-${{ matrix.arch }}-
-
-      - name: Cache binpkgs
-        uses: actions/cache@v4
-        with:
-          path: hostdir/binpkgs
-          key: binpkgs-${{ matrix.package }}-${{ matrix.arch }}-${{ github.sha }}
-          restore-keys: binpkgs-${{ matrix.arch }}-
-
-      - name: Setup void-packages
+      - name: Isolate build dirs
         run: |
+          mkdir -p masterdir-${{ matrix.arch }}-${{ matrix.package }}
+          mkdir -p hostdir/binpkgs-${{ matrix.package }}
+
           chown -R builder:builder .
           echo XBPS_BUILD_ENVIRONMENT=ci >> etc/conf
           echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
           echo XBPS_CHROOT_CMD=proot >> etc/conf
           echo XBPS_MAKEJOBS="$(nproc)" >> etc/conf
 
-          if [ ! -d masterdir-${{ matrix.arch }} ]; then
-            sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} binary-bootstrap
+          if [ ! -d masterdir-${{ matrix.arch }}-${{ matrix.package }}/usr ]; then
+            sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }}-${{ matrix.package }}  -A ${{ matrix.arch }} binary-bootstrap
           fi
 
       # -------------------- Packages to build --------------------
@@ -172,14 +174,15 @@ jobs:
       - id: build-package
         run: |
           set -e
-          sudo -Eu builder ./xbps-src pkg -j$(nproc) -m masterdir-${{ matrix.arch }} -A ${{ matrix.arch }} "${{ matrix.package }}"
-          pkgfile=$(ls hostdir/binpkgs/${{ matrix.package }}-*.xbps | head -n1 )
-          echo "pkg=$(basename $pkgfile)" >> $GITHUB_OUTPUT
+          sudo -Eu builder ./xbps-src -f pkg -m masterdir-${{ matrix.arch }}-${{ matrix.package }} -A ${{ matrix.arch }} "${{ matrix.package }}"
+
+          pkgfile=$(ls hostdir/binpkgs-${{ matrix.package }}/*.xbps | head -n1)
+          echo "pkg=$(basename "$pkgfile")" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v4
         with:
           name: void-${{ matrix.package }}
-          path: ./hostdir/binpkgs/${{ steps.build-package.outputs.pkg }}
+          path: hostdir/binpkgs-${{ matrix.package }}/*.xbps
 
       - if: failure()
         uses: actions/upload-artifact@v4
@@ -187,25 +190,31 @@ jobs:
           name: logs-${{ matrix.package }}
           path: ./builddir/.xbps-src*log
 
-      # -----------------------------------------------------------
-
+# ------------------------------------------------------------
+# 4. RELEASE — merge artifacts, sign repo, publish release
+# ------------------------------------------------------------
   newrelease:
     runs-on: ubuntu-latest
     needs: build
+    if: ${{ github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
     container:
       image: ghcr.io/void-linux/void-glibc-full:20250901R1
       options: --platform linux/amd64
-    if: ${{ github.ref == 'refs/heads/main' }}
+
     steps:
       - name: Prep container
         run: |
-          mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
-          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash git tar
-          useradd -G xbuilder -M builder -s $(which bash)
+          mkdir -p /etc/xbps.d
+          cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+          xbps-install -Syu xbps
+          xbps-install -yu
+          xbps-install -y sudo bash git tar
+
       - uses: actions/download-artifact@v4
         with:
           path: repo
           pattern: void-*
+          merge-multiple: true
 
       - name: Clean & sign
         working-directory: ./repo
