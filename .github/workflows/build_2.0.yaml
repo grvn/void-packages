@@ -168,7 +168,7 @@ jobs:
           XBPS_MAKEJOBS=$(nproc)
           EOF
 
-          ln -s / masterdir
+          ln -s / masterdir-${{ matrix.arch }}-${{ matrix.package }}
 
       # -------------------- Packages to build --------------------
 
