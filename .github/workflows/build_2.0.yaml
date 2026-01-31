@@ -168,13 +168,7 @@ jobs:
           XBPS_MAKEJOBS=$(nproc)
           EOF
 
-          cat etc/conf
-
-          pwd
-          ls -la
-          ls -l masterdir-${{ matrix.arch }}-${{ matrix.package }}
-
-          if [ ! -d masterdir-${{ matrix.arch }}-${{ matrix.package }}/usr ]; then
+          if [ ! -d "masterdir-${{ matrix.arch }}-${{ matrix.package }}/usr" ]; then
             sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }}-${{ matrix.package }} -A ${{ matrix.arch }} binary-bootstrap
           fi
 
@@ -182,7 +176,7 @@ jobs:
 
       - id: build-package
         run: |
-          # set -e
+          set -e
           sudo -Eu builder ./xbps-src -f pkg -m masterdir-${{ matrix.arch }}-${{ matrix.package }} -A ${{ matrix.arch }} "${{ matrix.package }}"
 
           pkgfile=$(ls hostdir/binpkgs-${{ matrix.package }}/*.xbps | head -n1)
