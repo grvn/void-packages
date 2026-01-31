@@ -26,49 +26,55 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        repository: void-linux/void-packages
-        ref: master
+      - uses: actions/checkout@v4
+        with:
+          repository: void-linux/void-packages
+          ref: master
 
-    - name: Merge this repository into void-linux/void-packages
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git config --global --add safe.directory "*"
-        git remote add -f grvn https://github.com/grvn/void-packages.git
-        git merge --no-commit --strategy-option=theirs --allow-unrelated-histories -Xignore-space-change grvn/main
-        mkdir -p hostdir/binpkgs
-        # gh release download --pattern "*${ARCH}*" --dir hostdir/binpkgs --repo grvn/void-packages || true
-        find -mindepth 1 -maxdepth 1 -exec tar cpzf source.tgz {} \+
+      - name: Merge this repository into void-linux/void-packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global --add safe.directory "*"
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: source
-        path: source.tgz
-        retention-days: 1
-        # include-hidden-files: true
+          git remote add -f grvn https://github.com/grvn/void-packages.git
+          git merge --no-commit --strategy-option=theirs --allow-unrelated-histories -Xignore-space-change grvn/main
+
+          mkdir -p hostdir/binpkgs
+          # gh release download --pattern "*${ARCH}*" --dir hostdir/binpkgs --repo grvn/void-packages || true
+          find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source
+          path: source.tgz
+          retention-days: 1
+          # include-hidden-files: true
 
   init:
     needs: prepare
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.find-packages.outputs.matrix }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     container:
       image: ghcr.io/void-linux/void-glibc-full:20250901R1
       options: --platform linux/amd64
       env:
         ARCH: x86_64
         XBPS_TARGET_ARCH: x86_64
-    if: ${{ github.ref == 'refs/heads/main' }}
+    outputs:
+      matrix: ${{ steps.find-packages.outputs.matrix }}
+
     steps:
       - name: Prep container
         run: |
-          mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
-          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y bash curl git github-cli tar jq sudo
-          useradd -G xbuilder -M builder -s $(which bash)
+          mkdir -p /etc/xbps.d
+          cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+          xbps-install -Syu xbps
+          xbps-install -yu
+          xbps-install -y bash curl git github-cli tar jq sudo proot
+          useradd -G xbuilder -M builder -s /bin/bash
 
       - uses: actions/download-artifact@v4
         with:
@@ -82,7 +88,7 @@ jobs:
         run: |
           git config --global --add safe.directory /__w/void-packages/void-packages
           latest_sha=$(git rev-list --max-parents=0 HEAD)
-          change=$(git diff-tree -r --no-renames --name-only --diff-filter=AM ${latest_sha} ${SHA} -- 'srcpkgs/**' | cut -d/ -f2 | uniq )
+          change=$(git diff-tree -r --no-renames --name-only --diff-filter=AM ${latest_sha} ${SHA} -- 'srcpkgs/**' | cut -d/ -f2 | uniq)
 
           if [ -n "${{ github.event.inputs.force_package }}" ]; then
             change="$change ${{ github.event.inputs.force_package }}"
@@ -95,8 +101,9 @@ jobs:
           echo "matrix=$(cat /tmp/matrix.json)" >> $GITHUB_OUTPUT
 
   build:
-    runs-on: ubuntu-latest
     needs: init
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
     # permissions:
     #   contents: write
     strategy:
@@ -119,13 +126,15 @@ jobs:
       env:
         ARCH: ${{ matrix.arch }}
         XBPS_TARGET_ARCH: ${{ matrix.arch }}
-    if: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
       - name: Prep container
         run: |
-          mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
-          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash git tar proot
+          mkdir -p /etc/xbps.d
+          cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+          xbps-install -Syu xbps
+          xbps-install -yu
+          xbps-install -y sudo bash git tar proot
           useradd -G xbuilder -M builder
 
       - uses: actions/download-artifact@v4
@@ -139,16 +148,14 @@ jobs:
         with:
           path: masterdir-${{ matrix.arch }}
           key: masterdir-${{ matrix.package }}-${{ matrix.arch }}-${{ github.sha }}
-          restore-keys: |
-            masterdir-${{ matrix.arch }}-
+          restore-keys: masterdir-${{ matrix.arch }}-
 
       - name: Cache binpkgs
         uses: actions/cache@v4
         with:
           path: hostdir/binpkgs
           key: binpkgs-${{ matrix.package }}-${{ matrix.arch }}-${{ github.sha }}
-          restore-keys: |
-            binpkgs-${{ matrix.arch }}-
+          restore-keys: binpkgs-${{ matrix.arch }}-
 
       - name: Setup void-packages
         run: |
