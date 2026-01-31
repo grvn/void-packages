@@ -168,6 +168,10 @@ jobs:
           XBPS_MAKEJOBS=$(nproc)
           EOF
 
+          cat etc/conf
+
+          pwd
+          ls -la
           ls -l masterdir-${{ matrix.arch }}-${{ matrix.package }}
 
           if [ ! -d masterdir-${{ matrix.arch }}-${{ matrix.package }}/usr ]; then
