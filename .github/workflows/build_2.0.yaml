@@ -132,8 +132,8 @@ jobs:
           # - arch: x86_64-musl
           #   libc: musl
     container:
-      image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
-      options: --platform linux/amd64
+      # image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
+      image: ghcr.io/void-linux/void-buildroot-${{ matrix.libc }}:latest
       env:
         ARCH: ${{ matrix.arch }}
         XBPS_TARGET_ARCH: ${{ matrix.arch }}
@@ -141,12 +141,9 @@ jobs:
     steps:
       - name: Prep container
         run: |
-          mkdir -p /etc/xbps.d
-          cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps
           xbps-install -yu
-          xbps-install -y sudo bash git tar
-          useradd -G xbuilder -M builder -s /bin/bash
+          xbps-install -y git tar
 
       - uses: actions/download-artifact@v4
         with:
@@ -156,10 +153,6 @@ jobs:
 
       - name: Isolate build dirs
         run: |
-          mkdir -p masterdir-${{ matrix.arch }}-${{ matrix.package }}
-          mkdir -p hostdir/binpkgs-${{ matrix.package }}
-
-          chown -R builder:builder .
           cat <<EOF >> etc/conf
           XBPS_BUILD_ENVIRONMENT=ci
           XBPS_ALLOW_RESTRICTED=yes
@@ -168,14 +161,15 @@ jobs:
           XBPS_MAKEJOBS=$(nproc)
           EOF
 
-          ln -s / masterdir-${{ matrix.arch }}-${{ matrix.package }}
+          ln -s / masterdir
 
       # -------------------- Packages to build --------------------
 
       - id: build-package
         run: |
-          set -e
-          sudo -Eu builder ./xbps-src -f pkg -m masterdir-${{ matrix.arch }}-${{ matrix.package }} -A ${{ matrix.arch }} "${{ matrix.package }}"
+          ./xbps-src pkg "${{ matrix.package }}"
+
+          ls hostdir
 
           pkgfile=$(ls hostdir/binpkgs-${{ matrix.package }}/*.xbps | head -n1)
           echo "pkg=$(basename "$pkgfile")" >> $GITHUB_OUTPUT
