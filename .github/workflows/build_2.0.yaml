@@ -168,9 +168,7 @@ jobs:
           XBPS_MAKEJOBS=$(nproc)
           EOF
 
-          if [ ! -d "masterdir-${{ matrix.arch }}-${{ matrix.package }}/usr" ]; then
-            sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }}-${{ matrix.package }} -A ${{ matrix.arch }} binary-bootstrap
-          fi
+          sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }}-${{ matrix.package }} -A ${{ matrix.arch }} binary-bootstrap
 
       # -------------------- Packages to build --------------------
 
