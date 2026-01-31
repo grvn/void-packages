@@ -166,8 +166,10 @@ jobs:
           echo XBPS_ALLOW_CHROOT_BREAKOUT=yes >> etc/conf
           echo XBPS_MAKEJOBS="$(nproc)" >> etc/conf
 
+          ls -l masterdir-${{ matrix.arch }}-${{ matrix.package }}
+
           if [ ! -d masterdir-${{ matrix.arch }}-${{ matrix.package }}/usr ]; then
-            sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }}-${{ matrix.package }}  -A ${{ matrix.arch }} binary-bootstrap
+            sudo -Eu builder ./xbps-src -m masterdir-${{ matrix.arch }}-${{ matrix.package }} -A ${{ matrix.arch }} binary-bootstrap
           fi
 
       # -------------------- Packages to build --------------------
