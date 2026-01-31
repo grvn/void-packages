@@ -79,7 +79,7 @@ jobs:
           cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps
           xbps-install -yu
-          xbps-install -y bash curl git github-cli tar jq sudo
+          xbps-install -y bash curl git github-cli tar jq sudo ethereal
           useradd -G xbuilder -M builder -s /bin/bash
 
       - uses: actions/download-artifact@v4
@@ -145,7 +145,7 @@ jobs:
           cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps
           xbps-install -yu
-          xbps-install -y sudo bash git tar
+          xbps-install -y sudo bash git tar ethereal
           useradd -G xbuilder -M builder -s /bin/bash
 
       - uses: actions/download-artifact@v4
@@ -162,7 +162,7 @@ jobs:
           chown -R builder:builder .
           echo XBPS_BUILD_ENVIRONMENT=ci >> etc/conf
           echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
-          echo XBPS_CHROOT_CMD=none >> etc/conf
+          echo XBPS_CHROOT_CMD=ethereal >> etc/conf
           echo XBPS_MAKEJOBS="$(nproc)" >> etc/conf
 
           if [ ! -d masterdir-${{ matrix.arch }}-${{ matrix.package }}/usr ]; then
