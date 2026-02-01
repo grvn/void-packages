@@ -52,13 +52,12 @@ jobs:
           #   rm --force hostdir/binpkgs/*x86_64-musl*
           # fi
           # rm --force hostdir/binpkgs/*.xbps.sig2
-          # find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
-          tar czf /tmp/source.tgz --exclude=masterdir --exclude=hostdir --exclude=builddir --exclude=source.tgz .
+          find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
 
       - uses: actions/upload-artifact@v4
         with:
           name: source
-          path: /tmp/source.tgz
+          path: source.tgz
           retention-days: 1
           # include-hidden-files: true
 
@@ -92,13 +91,16 @@ jobs:
         with:
           name: source
 
-      - run: tar xzf source.tgz
+      - run: |
+          mkdir -p /work
+          tar xzf source.tgz -C /work --strip-components=1
 
       - id: find-packages
+        working-directory: /work
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git config --global --add safe.directory /__w/void-packages/void-packages
+          git config --global --add safe.directory /work
           latest_name=$(gh release view --json tagName --jq '.tagName' --repo grvn/void-packages || echo "Initial Commit")
           latest_sha=$(git rev-list --max-count=1 ${latest_name} 2>/dev/null || git rev-list --max-parents=0 grvn/main)
           # latest_sha=$(git rev-list --max-parents=0 HEAD)
@@ -162,9 +164,12 @@ jobs:
         with:
           name: source
 
-      - run: tar xzf source.tgz
+      - run: |
+          mkdir -p /work
+          tar xzf source.tgz -C /work --strip-components=1
 
       - name: Configure xbps-src
+        working-directory: /work
         run: |
           cat <<EOF >> etc/conf
           XBPS_BUILD_ENVIRONMENT=ci
@@ -174,12 +179,12 @@ jobs:
           XBPS_MAKEJOBS=$(nproc)
           EOF
 
-          # extra hängslen för ethereal
-          #[ -e masterdir ] || ln -s / masterdir
+          [ -e masterdir ] || ln -s / masterdir
 
       # -------------------- Packages to build --------------------
 
       - id: build-package
+        working-directory: /work
         run: |
           ./xbps-src pkg "${{ matrix.package }}"
           pkgfile=$(ls hostdir/binpkgs/*.xbps | head -n1)
@@ -188,13 +193,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: void-${{ matrix.package }}
-          path: hostdir/binpkgs/*.xbps
+          path: /work/hostdir/binpkgs/*.xbps
 
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.package }}
-          path: ./builddir/.xbps-src*log
+          path: /work/builddir/.xbps-src*log
 
 # ------------------------------------------------------------
 # 4. RELEASE — merge artifacts, sign repo, publish release
