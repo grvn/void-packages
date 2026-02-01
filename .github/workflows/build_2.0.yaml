@@ -94,13 +94,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           git config --global --add safe.directory /work
-          latest_tag=$(gh release view --json tagName --jq '.tagName' --repo grvn/void-packages 2>/dev/null || echo "")
+
+          git fetch origin grvn/main || true
+          git fetch --tags || true
+
+          latest_tag=$(echo "")
 
           if [ -z "$latest_tag" ]; then
             echo "No previous release found, using previous commit"
-            latest_sha=$(git rev-parse HEAD~1)
+            if git rev-parse origin/grvn/main~1 >/dev/null 2>&1; then
+              latest_sha=$(git rev-list --max-count=1 origin/grvn/main~1)
+            else
+              latest_sha=$(git rev-list --max-parents=0 origin/grvn/main)
+            fi
           else
-            git fetch --tags
             latest_sha=$(git rev-list --max-count=1 "$latest_tag")
           fi
 
