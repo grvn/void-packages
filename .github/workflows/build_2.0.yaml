@@ -53,7 +53,7 @@ jobs:
           # fi
           # rm --force hostdir/binpkgs/*.xbps.sig2
           # find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
-          tar czf source.tgz --exclude=masterdir --exclude=hostdir --exclude=builddir .
+          tar czf source.tgz --exclude=masterdir --exclude=hostdir --exclude=builddir --exclude=source.tgz .
 
       - uses: actions/upload-artifact@v4
         with:
