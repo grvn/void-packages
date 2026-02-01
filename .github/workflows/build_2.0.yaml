@@ -134,6 +134,7 @@ jobs:
     container:
       # image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250901R1
       image: ghcr.io/void-linux/void-buildroot-${{ matrix.libc }}:latest
+      options: --platform linux/amd64
       env:
         ARCH: ${{ matrix.arch }}
         XBPS_TARGET_ARCH: ${{ matrix.arch }}
@@ -161,23 +162,20 @@ jobs:
           XBPS_MAKEJOBS=$(nproc)
           EOF
 
-          ln -s / masterdir
+          # ln -s / masterdir
 
       # -------------------- Packages to build --------------------
 
       - id: build-package
         run: |
           ./xbps-src pkg "${{ matrix.package }}"
-
-          ls hostdir
-
-          pkgfile=$(ls hostdir/binpkgs-${{ matrix.package }}/*.xbps | head -n1)
+          pkgfile=$(ls hostdir/binpkgs/*.xbps | head -n1)
           echo "pkg=$(basename "$pkgfile")" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v4
         with:
           name: void-${{ matrix.package }}
-          path: hostdir/binpkgs-${{ matrix.package }}/*.xbps
+          path: hostdir/binpkgs/*.xbps
 
       - if: failure()
         uses: actions/upload-artifact@v4
