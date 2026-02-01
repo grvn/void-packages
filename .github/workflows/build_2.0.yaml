@@ -94,7 +94,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           git config --global --add safe.directory /work
-          latest_tag=$(gh release view --json tagName --jq '.tagName' --repo demo/void-packages 2>/dev/null || echo "")
+          latest_tag=$(gh release view --json tagName --jq '.tagName' --repo grvn/void-packages 2>/dev/null || echo "")
 
           if [ -z "$latest_tag" ]; then
             echo "No previous release found, using previous commit"
