@@ -95,17 +95,15 @@ jobs:
         run: |
           git config --global --add safe.directory /work
 
-          git fetch origin grvn/main || true
-          git fetch --tags || true
-
           latest_tag=$(echo "")
 
           if [ -z "$latest_tag" ]; then
             echo "No previous release found, using previous commit"
-            if git rev-parse origin/grvn/main~1 >/dev/null 2>&1; then
-              latest_sha=$(git rev-list --max-count=1 origin/grvn/main~1)
+            if git rev-parse grvn/main~1 >/dev/null 2>&1; then
+              latest_sha=$(git rev-list --max-count=1 grvn/main~1)
             else
-              latest_sha=$(git rev-list --max-parents=0 origin/grvn/main)
+              # First commit fallback
+              latest_sha=$(git rev-list --max-parents=0 grvn/main)
             fi
           else
             latest_sha=$(git rev-list --max-count=1 "$latest_tag")
