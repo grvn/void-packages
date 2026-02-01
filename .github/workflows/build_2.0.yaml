@@ -209,26 +209,18 @@ jobs:
     needs: build
     if: ${{ github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
     container:
-      image: ghcr.io/void-linux/void-glibc-full:20250901R1
+      image: ghcr.io/void-linux/void-buildroot-glibc:latest
       options: --platform linux/amd64
 
     steps:
-      - name: Prep container
-        run: |
-          mkdir -p /etc/xbps.d
-          cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
-          xbps-install -Syu xbps
-          xbps-install -yu
-          xbps-install -y sudo bash git tar
-
       - uses: actions/download-artifact@v4
         with:
-          path: repo
+          path: /repo
           pattern: void-*
           merge-multiple: true
 
       - name: Clean & sign
-        working-directory: ./repo
+        working-directory: /repo
         env:
           PRIVKEY: ${{ secrets.PRIV_KEY }}
           XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
@@ -241,7 +233,7 @@ jobs:
           xbps-rindex --clean ${PWD}
 
       - name: checksum
-        working-directory: ./repo
+        working-directory: /repo
         run: |
           rm -rf *.sha256sum *.sha512sum
           for file in *.xbps; do
@@ -255,4 +247,4 @@ jobs:
         with:
           name: "Build ${{ github.sha }}"
           tag_name: ${{ env.TAG }}
-          files: repo/*
+          files: /repo/*
