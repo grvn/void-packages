@@ -46,7 +46,12 @@ jobs:
           git merge --no-commit --strategy-option=theirs --allow-unrelated-histories -Xignore-space-change grvn/main
 
           mkdir -p hostdir/binpkgs
+          # TODO: avkommentera
           # gh release download --pattern "*${ARCH}*" --dir hostdir/binpkgs --repo grvn/void-packages || true
+          # if [ "$ARCH" = x86_64 ]; then
+          #   rm --force hostdir/binpkgs/*x86_64-musl*
+          # fi
+          # rm --force hostdir/binpkgs/*.xbps.sig2
           find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
 
       - uses: actions/upload-artifact@v4
@@ -89,11 +94,16 @@ jobs:
       - run: tar xzf source.tgz
 
       - id: find-packages
-        # env:
-        #   GH_TOKEN: ${{ github.token }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config --global --add safe.directory /__w/void-packages/void-packages
-          latest_sha=$(git rev-list --max-parents=0 HEAD)
+          latest_name=$(gh release view --json tagName --jq '.tagName' --repo grvn/void-packages || echo "Initial Commit")
+          latest_sha=$(git rev-list --max-count=1 ${latest_name} 2>/dev/null || git rev-list --max-parents=0 grvn/main)
+          # latest_sha=$(git rev-list --max-parents=0 HEAD)
+          echo "Latest Tag Name: ${latest_name}"
+          echo "Latest Tag SHA: ${latest_sha}"
+
           change=$(git diff-tree -r --no-renames --name-only --diff-filter=AM ${latest_sha} ${SHA} -- 'srcpkgs/**' | cut -d/ -f2 | uniq)
 
           if [ -n "${{ github.event.inputs.force_package }}" ]; then
