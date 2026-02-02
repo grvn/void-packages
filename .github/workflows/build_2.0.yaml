@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' }}
     container:
-      image: ghcr.io/void-linux/void-buildroot-glibc:latest
+      image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1
       options: --platform linux/amd64
     outputs:
       matrix: ${{ steps.find-packages.outputs.matrix }}
@@ -141,7 +141,7 @@ jobs:
           - glibc
           - musl
     container:
-      image: ghcr.io/void-linux/void-buildroot-${{ matrix.libc }}:latest
+      image: ghcr.io/void-linux/void-buildroot-${{ matrix.libc }}:20251206R1
       options: --platform linux/amd64
 
     steps:
@@ -219,7 +219,7 @@ jobs:
     needs: build
     if: ${{ github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
     container:
-      image: ghcr.io/void-linux/void-buildroot-glibc:latest
+      image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1
       options: --platform linux/amd64
 
     steps:
