@@ -202,10 +202,24 @@ jobs:
           path: /work/hostdir/binpkgs/*.xbps
 
       - if: failure()
+        id: uploadlogs
         uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.package }}-${{ matrix.libc }}
-          path: /work/builddir/.xbps-src*log
+          path: /work/builddir/.xbps-src*/${{ matrix.package }}/*.log
+          retention-days: 7
+
+      - name: Add failure to summary
+        if: failure()
+        run: |
+          {
+            echo "### ❌ Package Build Failed"
+            echo ""
+            echo "| Package | Libc | Logs |"
+            echo "|---------|------|------|"
+            echo "| \`${{ matrix.package }}\` | \`${{ matrix.libc }}\` | [View logs](${{ steps.uploadlogs.outputs.artifact-url }}) |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
 
 # ------------------------------------------------------------
 # 4. RELEASE — merge artifacts, sign repo, publish release
