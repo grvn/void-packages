@@ -9,6 +9,8 @@
 *.pem
 *.pub
 
+wip/
+
 # Exclude all binaries
 *.bin
 *.jar
