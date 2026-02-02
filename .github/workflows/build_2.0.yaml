@@ -137,12 +137,9 @@ jobs:
         package: ${{ fromJson(needs.init.outputs.matrix) }}
         arch:
           - x86_64
-          # - x86_64-musl
-        include:
-          - arch: x86_64
-            libc: glibc
-          # - arch: x86_64-musl
-          #   libc: musl
+        libc:
+          - glibc
+          - musl
     container:
       image: ghcr.io/void-linux/void-buildroot-${{ matrix.libc }}:latest
       options: --platform linux/amd64
@@ -179,7 +176,7 @@ jobs:
         run: |
           mkdir -p hostdir/binpkgs
 
-          gh release download --pattern "*${{ matrix.arch }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
+          gh release download --pattern "*${{ matrix.arch }}*${{ matrix.libc }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
 
       - name: Configure xbps-src
         working-directory: /work
