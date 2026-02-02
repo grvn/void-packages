@@ -74,7 +74,7 @@ jobs:
           # cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps
           xbps-install -yu
-          xbps-install -y github-cli tar jq
+          xbps-install -y github-cli jq
 
       - uses: actions/download-artifact@v4
         with:
@@ -82,7 +82,7 @@ jobs:
 
       - run: |
           mkdir -p /work
-          tar xzf source.tgz -C /work --strip-components=1
+          bsdtar xzf source.tgz -C /work --strip-components=1
 
       - id: find-packages
         working-directory: /work
@@ -148,9 +148,6 @@ jobs:
       - name: Prep container
         run: |
           echo "/usr/libexec/chroot-git" >> "$GITHUB_PATH"
-          xbps-install -Syu xbps
-          xbps-install -yu
-          xbps-install -y tar
 
       - uses: actions/download-artifact@v4
         with:
@@ -158,8 +155,7 @@ jobs:
 
       - run: |
           mkdir -p /work
-          tar xzf source.tgz -C /work --strip-components=1
-
+          bsdtar xzf source.tgz -C /work --strip-components=1
 
       - name: Cache distfiles
         uses: actions/cache@v4
