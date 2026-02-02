@@ -62,23 +62,19 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' }}
     container:
-      image: ghcr.io/void-linux/void-glibc-full:20250901R1
+      image: ghcr.io/void-linux/void-buildroot-glibc:latest
       options: --platform linux/amd64
-      env:
-        ARCH: x86_64
-        XBPS_TARGET_ARCH: x86_64
     outputs:
       matrix: ${{ steps.find-packages.outputs.matrix }}
 
     steps:
       - name: Prep container
         run: |
-          mkdir -p /etc/xbps.d
-          cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+          echo "/usr/libexec/chroot-git" >> "$GITHUB_PATH"
+          # cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps
           xbps-install -yu
-          xbps-install -y bash curl git github-cli tar jq sudo
-          useradd -G xbuilder -M builder -s /bin/bash
+          xbps-install -y github-cli tar jq
 
       - uses: actions/download-artifact@v4
         with:
@@ -118,12 +114,10 @@ jobs:
             change="$change ${{ github.event.inputs.force_package }}"
           fi
 
-          chown -R builder:builder .
-
           if [ -z "$change" ]; then
             echo "[]" > /tmp/matrix.json
           else
-            echo "$change" | sudo -Eu builder xargs ./xbps-src sort-dependencies | jq -R | jq -cs | tee /tmp/matrix.json
+            echo "$change" | xargs ./xbps-src sort-dependencies | jq -R | jq -cs | tee /tmp/matrix.json
           fi
 
           echo "matrix=$(cat /tmp/matrix.json)" >> $GITHUB_OUTPUT
@@ -186,8 +180,6 @@ jobs:
           mkdir -p hostdir/binpkgs
 
           gh release download --pattern "*${{ matrix.arch }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
-
-          echo "Downloaded previous packages for arch ${{ matrix.arch }}"
 
       - name: Configure xbps-src
         working-directory: /work
