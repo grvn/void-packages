@@ -46,6 +46,7 @@ jobs:
           # include-hidden-files: true
 
   build:
+    needs: prepare
     runs-on: ubuntu-latest
 
     strategy:
