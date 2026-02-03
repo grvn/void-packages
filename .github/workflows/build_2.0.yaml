@@ -150,6 +150,10 @@ jobs:
       options: --platform linux/amd64
 
     steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: void-linux/void-packages
+          ref: master
       - name: Prep container
         run: echo "/usr/libexec/chroot-git" >> "$GITHUB_PATH"
 
