@@ -16,37 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: void-linux/void-packages
-          ref: master
-
-      - name: Merge this repository into void-linux/void-packages
-        # env:
-        #   GH_TOKEN: ${{ github.token }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global --add safe.directory "*"
-
-          git remote add -f grvn https://github.com/grvn/void-packages.git
-          git merge --no-commit --strategy-option=theirs --allow-unrelated-histories -Xignore-space-change grvn/main
-
-          find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
-
-      - name: Upload prepared merged repo
-        uses: actions/upload-artifact@v4
-        with:
-          name: source
-          path: source.tgz
-          retention-days: 1
-          # include-hidden-files: true
-
   build:
-    needs: prepare
     runs-on: ubuntu-latest
 
     strategy:
@@ -77,15 +47,19 @@ jobs:
           xbps-install -y sudo bash curl git
           useradd -G xbuilder -M builder
 
-      - name: Download prepared merged repo
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
         with:
-          name: source
+          repository: void-linux/void-packages
+          ref: master
+
+      - name: Merge this repository into void-linux/void-packages
+        run: |
+          skript/merge_repos.sh
 
       - name: Unpack prepared repo
         run: |
           mkdir -p /work
-          tar xzf source.tgz -C /work --strip-components=1
+          mv /__w/void-packages/void-packages /work
 
       - name: Prepare masterdir
         working-directory: /work
