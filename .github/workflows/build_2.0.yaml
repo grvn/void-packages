@@ -159,7 +159,7 @@ jobs:
           sed -i 's|repo-default|repo-ci|g' /etc/xbps.d/*-repository-*.conf
           xbps-install -Syu xbps
           xbps-install -yu
-          xbps-install -y sudo bash curl git jq
+          xbps-install -y sudo bash curl git jq unzip
           useradd -G xbuilder -M builder
 
       - name: Clone and checkout
