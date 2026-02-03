@@ -154,8 +154,9 @@ jobs:
         run: echo "/usr/libexec/chroot-git" >> "$GITHUB_PATH"
 
       - name: Download prepared merged repo
-        run: |
-          .github/scripts/gh-download-artifacts.sh
+        uses: actions/download-artifact@v7
+        with:
+          name: source
 
       - name: Unpack prepared repo
         run: |
