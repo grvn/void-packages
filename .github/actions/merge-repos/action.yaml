@@ -32,7 +32,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: $GITHUB_ACTION_PATH/checkout-merge.sh
+    - run: $GITHUB_ACTION_PATH/scripts/checkout-merge.sh
       shell: bash
       env:
         PRIM_REF: ${{ inputs.primary_ref }}
