@@ -16,28 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: grvn/checkout-merge-action@v1.0.0
-        with:
-          primary_repository: void-linux/void-packages
-          primary_ref: master
-
-      - name: Merge this repository into void-linux/void-packages
-        run: |
-          find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
-
-      - name: Upload prepared merged repo
-        uses: actions/upload-artifact@v4
-        with:
-          name: source
-          path: source.tgz
-          retention-days: 1
-          # include-hidden-files: true
-
   build:
-    needs: prepare
     runs-on: ubuntu-latest
 
     strategy:
@@ -68,18 +47,12 @@ jobs:
           xbps-install -y sudo bash curl git
           useradd -G xbuilder -M builder
 
-      - name: Download prepared merged repo
-        uses: actions/download-artifact@v4
+      - uses: grvn/checkout-merge-action@v1.0.0
         with:
-          name: source
-
-      - name: Unpack prepared repo
-        run: |
-          mkdir -p /work
-          tar xzf source.tgz -C /work --strip-components=1
+          primary_repository: void-linux/void-packages
+          primary_ref: master
 
       - name: Prepare masterdir
-        working-directory: /work
         run: |
           chown -R builder:builder .
           sudo -Eu builder common/travis/set_mirror.sh
@@ -87,23 +60,18 @@ jobs:
           common/travis/fetch-xtools.sh
 
       - name: Find changed templates
-        working-directory: /work
         run: sudo -Eu builder common/travis/changed_templates.sh
 
       - name: Build packages
-        working-directory: /work
         run: sudo -Eu builder common/travis/build.sh "$BOOTSTRAP" "$ARCH" "$TEST"
 
       - name: Show files
-        working-directory: /work
         run: sudo -Eu builder common/travis/show_files.sh "$BOOTSTRAP" "$ARCH"
 
       - name: Compare to previous
-        working-directory: /work
         run: sudo -Eu builder common/travis/xpkgdiff.sh "$BOOTSTRAP" "$ARCH"
 
       - name: Check file conflicts
-        working-directory: /work
         if: matrix.config.arch == 'x86_64'
         run: |
           if [ -s /tmp/templates ]; then
@@ -113,7 +81,6 @@ jobs:
           fi
 
       - name: Verify repository state
-        working-directory: /work
         run: |
           mkdir -p /check-install
           chown builder:builder /check-install
