@@ -25,8 +25,8 @@ jobs:
           ref: master
 
       - name: Merge this repository into void-linux/void-packages
-        env:
-          GH_TOKEN: ${{ github.token }}
+        # env:
+        #   GH_TOKEN: ${{ github.token }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
