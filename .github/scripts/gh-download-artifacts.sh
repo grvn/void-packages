@@ -17,10 +17,13 @@ LIST_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts"
 ARTIFACT_ID=$(curl -sSL \
   -H "Authorization: Bearer ${GH_TOKEN}" \
   "${LIST_URL}" \
-  | jq -r ".artifacts[] | select(.name==\"${ARTIFACT_NAME}\") | .id")
+  | jq -r ".artifacts[]
+      | select(.name==\"${ARTIFACT_NAME}\")
+      | select(.workflow_run.id == ${GITHUB_RUN_ID})
+      | .id")
 
-if [ -z "$ARTIFACT_ID" ]; then
-    echo "Artifact '$ARTIFACT_NAME' not found"
+if [ -z "$ARTIFACT_ID" ] || [ "$ARTIFACT_ID" = "null" ]; then
+    echo "Artifact '$ARTIFACT_NAME' not found for this run"
     exit 1
 fi
 
@@ -29,10 +32,7 @@ DOWNLOAD_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifact
 
 echo "Downloading artifact '$ARTIFACT_NAME' (ID $ARTIFACT_ID)..."
 
-curl -L -sSL \
-  -H "Authorization: Bearer ${GH_TOKEN}" \
-  -o /tmp/artifact.zip \
-  "${DOWNLOAD_URL}"
+curl -L -sSL -H "Authorization: Bearer ${GH_TOKEN}" -o /tmp/artifact.zip "${DOWNLOAD_URL}"
 
 unzip -o /tmp/artifact.zip -d "$OUTDIR"
 
