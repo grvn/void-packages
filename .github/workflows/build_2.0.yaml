@@ -77,6 +77,11 @@ jobs:
           xbps-install -yu
           xbps-install -y github-cli jq
 
+      - name: Copy repo into workspace
+        run: |
+          cp -r /__w/void-packages/void-packages ./
+          ls -la
+
       - name: Download prepared merged repo
         uses: actions/download-artifact@v7
         with:
@@ -150,10 +155,6 @@ jobs:
       options: --platform linux/amd64
 
     steps:
-      - uses: actions/checkout@v6
-        with:
-          repository: void-linux/void-packages
-          ref: master
       - name: Prep container
         run: echo "/usr/libexec/chroot-git" >> "$GITHUB_PATH"
 
