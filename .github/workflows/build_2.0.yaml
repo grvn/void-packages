@@ -121,6 +121,7 @@ jobs:
           if [ -z "$change" ]; then
             echo "[]" > /tmp/matrix.json
           else
+            echo "XBPS_ALLOW_CHROOT_BREAKOUT=yes" > etc/conf
             echo "$change" | xargs ./xbps-src sort-dependencies | jq -R | jq -cs | tee /tmp/matrix.json
           fi
 
@@ -150,8 +151,7 @@ jobs:
 
     steps:
       - name: Prep container
-        run: |
-          echo "/usr/libexec/chroot-git" >> "$GITHUB_PATH"
+        run: echo "/usr/libexec/chroot-git" >> "$GITHUB_PATH"
 
       - name: Download prepared merged repo
         uses: actions/download-artifact@v4
