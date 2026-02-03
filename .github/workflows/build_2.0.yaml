@@ -47,7 +47,8 @@ jobs:
 
           find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload prepared merged repo
+        uses: actions/upload-artifact@v4
         with:
           name: source
           path: source.tgz
@@ -76,15 +77,18 @@ jobs:
           xbps-install -yu
           xbps-install -y github-cli jq
 
-      - uses: actions/download-artifact@v4
+      - name: Download prepared merged repo
+        uses: actions/download-artifact@v4
         with:
           name: source
 
-      - run: |
+      - name: Unpack prepared repo
+        run: |
           mkdir -p /work
           bsdtar xzf source.tgz -C /work --strip-components=1
 
-      - id: find-packages
+      - name: Identify new packages to build
+        id: find-packages
         working-directory: /work
         env:
           GH_TOKEN: ${{ github.token }}
@@ -149,11 +153,13 @@ jobs:
         run: |
           echo "/usr/libexec/chroot-git" >> "$GITHUB_PATH"
 
-      - uses: actions/download-artifact@v4
+      - name: Download prepared merged repo
+        uses: actions/download-artifact@v4
         with:
           name: source
 
-      - run: |
+      - name: Unpack prepared repo
+        run: |
           mkdir -p /work
           bsdtar xzf source.tgz -C /work --strip-components=1
 
@@ -189,19 +195,22 @@ jobs:
 
       # -------------------- Packages to build --------------------
 
-      - id: build-package
+      - name: Build package
+        id: build-package
         working-directory: /work
         run: |
           ./xbps-src pkg "${{ matrix.package }}"
           pkgfile=$(ls hostdir/binpkgs/*.xbps | head -n1)
           echo "pkg=$(basename "$pkgfile")" >> $GITHUB_OUTPUT
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload built package
+        uses: actions/upload-artifact@v4
         with:
           name: void-${{ matrix.package }}-${{ matrix.libc }}
           path: /work/hostdir/binpkgs/*.xbps
 
-      - if: failure()
+      - name: Upload logs on failure
+        if: failure()
         id: uploadlogs
         uses: actions/upload-artifact@v4
         with:
@@ -233,7 +242,8 @@ jobs:
       options: --platform linux/amd64
 
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download built packages
+        uses: actions/download-artifact@v4
         with:
           path: /repo
           pattern: void-*
@@ -261,7 +271,8 @@ jobs:
             sha512sum "${file}" | cut -d ' ' -f1 > "${file}.sha512sum"
           done
 
-      - uses: softprops/action-gh-release@v2
+      - name: Create new release
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
