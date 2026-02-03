@@ -159,13 +159,15 @@ jobs:
           sed -i 's|repo-default|repo-ci|g' /etc/xbps.d/*-repository-*.conf
           xbps-install -Syu xbps
           xbps-install -yu
-          xbps-install -y sudo bash curl git
+          xbps-install -y sudo bash curl git jq
           useradd -G xbuilder -M builder
 
       - name: Clone and checkout
         uses: classabbyamp/treeless-checkout-action@v1
 
       - name: Download and unpack prepared repo
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           .github/scripts/gh-download-artifacts.sh source /tmp
           mkdir -p /work
