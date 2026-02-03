@@ -84,7 +84,7 @@ jobs:
       - name: Unpack prepared repo
         run: |
           mkdir -p /work
-          bsdtar xzf source.tgz -C /work --strip-components=1
+          tar xzf source.tgz -C /work --strip-components=1
 
       - name: Prepare masterdir
         working-directory: /work
