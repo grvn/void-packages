@@ -19,7 +19,7 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/merge-repos
+      - uses: grvn/checkout-merge-action@v1.0.0
         with:
           primary_repository: void-linux/void-packages
           primary_ref: master
