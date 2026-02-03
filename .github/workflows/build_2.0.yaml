@@ -79,7 +79,9 @@ jobs:
 
       - name: Copy repo into workspace
         run: |
+          pwd
           ls -la
+          ls -la /__w/
           cp -r /__w/void-packages/void-packages ./
           ls -la
 
