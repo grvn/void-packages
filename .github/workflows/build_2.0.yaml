@@ -167,7 +167,7 @@ jobs:
 
       - name: Download and unpack prepared repo
         run: |
-          ./github/scripts/gh-download-artifacts.sh source /tmp
+          .github/scripts/gh-download-artifacts.sh source /tmp
           mkdir -p /work
           bsdtar xzf /tmp/source.tgz -C /work --strip-components=1
 
