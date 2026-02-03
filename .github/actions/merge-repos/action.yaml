@@ -1,0 +1,43 @@
+name: 'Checkout and Merge'
+description: 'Checks out a primary repo and overlays it with a secondary repo'
+author: grvn
+branding:
+  icon: git-merge
+  color: purple
+inputs:
+  primary_ref:
+    default: ${{ github.ref }}
+    description: 'Ref to checkout (SHA, branch, tag)'
+    required: false
+  primary_repository:
+    default: ${{ github.repository }}
+    description: 'Repository name'
+    required: false
+  primary_server_url:
+    default: ${{ github.server_url }}
+    description: 'GitHub server url'
+    required: false
+  secondary_ref:
+    default: ${{ github.ref }}
+    description: 'Ref to checkout (SHA, branch, tag)'
+    required: false
+  secondary_repository:
+    default: ${{ github.repository }}
+    description: 'Repository name'
+    required: false
+  secondary_server_url:
+    default: ${{ github.server_url }}
+    description: 'GitHub server url'
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - run: $GITHUB_ACTION_PATH/checkout-merge.sh
+      shell: bash
+      env:
+        PRIM_REF: ${{ inputs.primary_ref }}
+        PRIM_REPOSITORY: ${{ inputs.primary_repository }}
+        PRIM_SERVER_URL: ${{ inputs.primary_server_url }}
+        SEC_REF: ${{ inputs.secondary_ref }}
+        SEC_REPOSITORY: ${{ inputs.secondary_repository }}
+        SEC_SERVER_URL: ${{ inputs.secondary_server_url }}

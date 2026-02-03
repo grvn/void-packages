@@ -16,7 +16,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/merge-repos
+        with:
+          primary_repository: void-linux/void-packages
+          primary_ref: master
+
+      - name: Merge this repository into void-linux/void-packages
+        run: |
+          find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
+
+      - name: Upload prepared merged repo
+        uses: actions/upload-artifact@v4
+        with:
+          name: source
+          path: source.tgz
+          retention-days: 1
+          # include-hidden-files: true
+
   build:
+    needs: prepare
     runs-on: ubuntu-latest
 
     strategy:
@@ -47,19 +68,15 @@ jobs:
           xbps-install -y sudo bash curl git
           useradd -G xbuilder -M builder
 
-      - uses: actions/checkout@v4
+      - name: Download prepared merged repo
+        uses: actions/download-artifact@v4
         with:
-          repository: void-linux/void-packages
-          ref: master
-
-      - name: Merge this repository into void-linux/void-packages
-        run: |
-          skript/merge_repos.sh
+          name: source
 
       - name: Unpack prepared repo
         run: |
           mkdir -p /work
-          mv /__w/void-packages/void-packages /work
+          tar xzf source.tgz -C /work --strip-components=1
 
       - name: Prepare masterdir
         working-directory: /work
