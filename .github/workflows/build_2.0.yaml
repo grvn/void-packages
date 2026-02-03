@@ -1,4 +1,4 @@
-name: Build and Release Void Linux Packages
+name: Build and Release Custom Void Linux Packages
 
 env:
   # TAG: workflow-${{ github.run_number }}
