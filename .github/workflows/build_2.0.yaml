@@ -48,7 +48,7 @@ jobs:
           find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
 
       - name: Upload prepared merged repo
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: source
           path: source.tgz
@@ -78,7 +78,7 @@ jobs:
           xbps-install -y github-cli jq
 
       - name: Download prepared merged repo
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: source
 
@@ -154,7 +154,7 @@ jobs:
         run: echo "/usr/libexec/chroot-git" >> "$GITHUB_PATH"
 
       - name: Download prepared merged repo
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: source
 
@@ -204,7 +204,7 @@ jobs:
           echo "pkg=$(basename "$pkgfile")" >> $GITHUB_OUTPUT
 
       - name: Upload built package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: void-${{ matrix.package }}-${{ matrix.libc }}
           path: /work/hostdir/binpkgs/*.xbps
@@ -212,7 +212,7 @@ jobs:
       - name: Upload logs on failure
         if: failure()
         id: uploadlogs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: logs-${{ matrix.package }}-${{ matrix.libc }}
           path: /work/builddir/.xbps-src*/${{ matrix.package }}/*.log
@@ -243,7 +243,7 @@ jobs:
 
     steps:
       - name: Download built packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: /repo
           pattern: void-*
