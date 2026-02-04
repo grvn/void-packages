@@ -234,6 +234,8 @@ jobs:
 
       - name: Upload built package
         if: success()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         working-directory: /work
         run: |
           PKGDIR="/work/hostdir/binpkgs"
@@ -270,6 +272,8 @@ jobs:
       - name: Upload logs on failure
         if: failure()
         id: uploadlogs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         working-directory: /work
         run: |
           .github/scripts/gh-upload-artifact.sh \
