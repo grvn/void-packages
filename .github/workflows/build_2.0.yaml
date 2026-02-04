@@ -240,7 +240,7 @@ jobs:
         run: |
           PKGDIR="/work/hostdir/binpkgs"
 
-          if [ -d "$PKGDIR" ]; then
+          if compgen -G "${PKGDIR}/*.xbps" > /dev/null; then
             .github/scripts/gh-upload-artifact.sh \
               "packages-${{ matrix.package }}-${{ matrix.libc }}" \
               "$PKGDIR"

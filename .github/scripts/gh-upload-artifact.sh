@@ -55,6 +55,8 @@ JSON=$(jq -n \
     }'
 )
 
+set -x
+
 # Create artifact
 CREATE_URL="https://uploads.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts"
 
