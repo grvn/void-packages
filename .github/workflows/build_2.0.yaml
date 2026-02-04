@@ -159,7 +159,7 @@ jobs:
           sed -i 's|repo-default|repo-ci|g' /etc/xbps.d/*-repository-*.conf
           xbps-install -Syu xbps
           xbps-install -yu
-          xbps-install -y sudo bash curl git jq unzip
+          xbps-install -y sudo bash curl git jq unzip github-cli
           useradd -G xbuilder -M builder
 
       - name: Clone and checkout
@@ -182,6 +182,7 @@ jobs:
           common/travis/fetch-xtools.sh
 
       - name: Restore distfiles cache
+        working-directory: /work
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
@@ -198,34 +199,55 @@ jobs:
 
           gh release download --pattern "*${{ matrix.arch }}*${{ matrix.libc }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
 
-      - name: Configure xbps-src
-        working-directory: /work
-        run: |
-          cat <<EOF >> etc/conf
-          XBPS_BUILD_ENVIRONMENT=ci
-          XBPS_ALLOW_RESTRICTED=yes
-          XBPS_CHROOT_CMD=ethereal
-          XBPS_ALLOW_CHROOT_BREAKOUT=yes
-          XBPS_MAKEJOBS=$(nproc)
-          EOF
+      # - name: Configure xbps-src
+      #   working-directory: /work
+      #   run: |
+      #     cat <<EOF >> etc/conf
+      #     XBPS_BUILD_ENVIRONMENT=ci
+      #     XBPS_ALLOW_RESTRICTED=yes
+      #     XBPS_CHROOT_CMD=ethereal
+      #     XBPS_ALLOW_CHROOT_BREAKOUT=yes
+      #     XBPS_MAKEJOBS=$(nproc)
+      #     EOF
 
-          [ -e masterdir ] || ln -s / masterdir
+      #     [ -e masterdir ] || ln -s / masterdir
 
       # -------------------- Packages to build --------------------
 
       - name: Build package
-        id: build-package
         working-directory: /work
         run: |
-          ./xbps-src pkg "${{ matrix.package }}"
-          pkgfile=$(ls hostdir/binpkgs/*.xbps | head -n1)
-          echo "pkg=$(basename "$pkgfile")" >> $GITHUB_OUTPUT
+          echo "${{ matrix.package }}" > /tmp/templates
+          common/travis/build.sh
+
+      # - name: Build package
+      #   id: build-package
+      #   working-directory: /work
+      #   run: |
+      #     ./xbps-src pkg "${{ matrix.package }}"
+      #     pkgfile=$(ls hostdir/binpkgs/*.xbps | head -n1)
+      #     echo "pkg=$(basename "$pkgfile")" >> $GITHUB_OUTPUT
 
       - name: Upload built package
-        uses: actions/upload-artifact@v6
-        with:
-          name: void-${{ matrix.package }}-${{ matrix.libc }}
-          path: /work/hostdir/binpkgs/*.xbps
+        if: success()
+        working-directory: /work
+        run: |
+          ARCH=$(xbps-uhelper arch)
+          PKGDIR="/work/hostdir/binpkgs/${ARCH}"
+
+          if [ -d "$PKGDIR" ]; then
+            .github/scripts/gh-upload-artifact.sh \
+              "packages-${{ matrix.package }}-${{ matrix.libc }}" \
+              "$PKGDIR"
+          else
+            echo "No built packages found for ${{ matrix.package }} on ${{ matrix.libc }}"
+          fi
+
+      # - name: Upload built package
+      #   uses: actions/upload-artifact@v6
+      #   with:
+      #     name: void-${{ matrix.package }}-${{ matrix.libc }}
+      #     path: /work/hostdir/binpkgs/*.xbps
 
       - name: Save distfiles cache
         env:
@@ -233,14 +255,24 @@ jobs:
         run: |
           .github/scripts/gh-cache-save.sh "distfiles-${{ matrix.libc }}" /work/hostdir/distfiles
 
+      # - name: Upload logs on failure
+      #   if: failure()
+      #   id: uploadlogs
+      #   uses: actions/upload-artifact@v6
+      #   with:
+      #     name: logs-${{ matrix.package }}-${{ matrix.libc }}
+      #     path: /work/builddir/.xbps-src*/${{ matrix.package }}/*.log
+      #     retention-days: 7
+
       - name: Upload logs on failure
         if: failure()
         id: uploadlogs
-        uses: actions/upload-artifact@v6
-        with:
-          name: logs-${{ matrix.package }}-${{ matrix.libc }}
-          path: /work/builddir/.xbps-src*/${{ matrix.package }}/*.log
-          retention-days: 7
+        working-directory: /work
+        run: |
+          ./overlay/.github/scripts/gh-upload-artifact.sh \
+          --retention-days 7 \
+          "logs-${{ matrix.package }}-${{ matrix.libc }}" \
+          /work/builddir/.xbps-src*/${{ matrix.package }}/*.log
 
       - name: Add failure to summary
         if: failure()
