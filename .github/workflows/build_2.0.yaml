@@ -142,9 +142,13 @@ jobs:
         package: ${{ fromJson(needs.init.outputs.matrix) }}
         arch:
           - x86_64
-        libc:
-          - glibc
-          - musl
+          - x86_64-musl
+        include:
+          - arch: x86_64
+            libc: glibc
+          - arch: x86_64-musl
+            libc: musl
+
     container:
       image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250616R1
       options: --platform linux/amd64 --privileged
@@ -218,7 +222,7 @@ jobs:
         working-directory: /work
         run: |
           echo "${{ matrix.package }}" > /tmp/templates
-          common/travis/build.sh
+          sudo -Eu builder common/travis/build.sh
 
       # - name: Build package
       #   id: build-package
@@ -234,6 +238,9 @@ jobs:
         run: |
           ARCH=$(xbps-uhelper arch)
           PKGDIR="/work/hostdir/binpkgs/${ARCH}"
+
+          ls -la /work/hostdir/binpkgs/ ||:
+          ls -la ${PKGDIR} ||:
 
           if [ -d "$PKGDIR" ]; then
             .github/scripts/gh-upload-artifact.sh \
