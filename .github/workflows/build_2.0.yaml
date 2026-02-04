@@ -163,7 +163,7 @@ jobs:
           sed -i 's|repo-default|repo-ci|g' /etc/xbps.d/*-repository-*.conf
           xbps-install -Syu xbps
           xbps-install -yu
-          xbps-install -y sudo bash curl git jq unzip github-cli
+          xbps-install -y sudo bash curl git jq zip unzip github-cli
           useradd -G xbuilder -M builder
 
       - name: Clone and checkout
@@ -272,7 +272,7 @@ jobs:
         id: uploadlogs
         working-directory: /work
         run: |
-          ./overlay/.github/scripts/gh-upload-artifact.sh \
+          .github/scripts/gh-upload-artifact.sh \
           --retention-days 7 \
           "logs-${{ matrix.package }}-${{ matrix.libc }}" \
           /work/builddir/.xbps-src*/${{ matrix.package }}/*.log
