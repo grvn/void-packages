@@ -236,11 +236,7 @@ jobs:
         if: success()
         working-directory: /work
         run: |
-          ARCH=$(xbps-uhelper arch)
-          PKGDIR="/work/hostdir/binpkgs/${ARCH}"
-
-          ls -la /work/hostdir/binpkgs/ ||:
-          ls -la ${PKGDIR} ||:
+          PKGDIR="/work/hostdir/binpkgs"
 
           if [ -d "$PKGDIR" ]; then
             .github/scripts/gh-upload-artifact.sh \
