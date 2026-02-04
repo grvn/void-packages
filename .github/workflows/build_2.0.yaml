@@ -167,7 +167,7 @@ jobs:
 
       - name: Download and unpack prepared repo
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           .github/scripts/gh-download-artifacts.sh source /tmp
           mkdir -p /work
@@ -181,13 +181,13 @@ jobs:
           sudo -Eu builder common/travis/prepare.sh &&
           common/travis/fetch-xtools.sh
 
-      - name: Cache distfiles
-        uses: actions/cache@v4
-        with:
-          path: /work/hostdir/distfiles
-          key: distfiles-${{ matrix.libc }}-${{ matrix.arch }}-${{ hashFiles('srcpkgs/**/template') }}
-          restore-keys: |
-            distfiles-${{ matrix.libc }}-${{ matrix.arch }}-
+      - name: Restore distfiles cache
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          .github/scripts/gh-cache-restore.sh \
+            "distfiles-${{ matrix.libc }}-${{ matrix.arch }}-${{ hashFiles('srcpkgs/**/template') }}" \
+            /work/hostdir/distfiles
 
       - name: Download released packages
         working-directory: /work
@@ -226,6 +226,12 @@ jobs:
         with:
           name: void-${{ matrix.package }}-${{ matrix.libc }}
           path: /work/hostdir/binpkgs/*.xbps
+
+      - name: Save distfiles cache
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          .github/scripts/gh-cache-save.sh "distfiles-${{ matrix.libc }}" /work/hostdir/distfiles
 
       - name: Upload logs on failure
         if: failure()

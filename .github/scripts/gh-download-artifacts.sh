@@ -15,7 +15,7 @@ mkdir -p "$OUTDIR"
 LIST_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts"
 
 ARTIFACT_ID=$(curl -sSL \
-  -H "Authorization: Bearer ${GH_TOKEN}" \
+  -H "Authorization: Bearer ${GITHUB_TOKEN}" \
   "${LIST_URL}" \
   | jq -r ".artifacts[]
       | select(.name==\"${ARTIFACT_NAME}\")
@@ -32,7 +32,7 @@ DOWNLOAD_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifact
 
 echo "Downloading artifact '$ARTIFACT_NAME' (ID $ARTIFACT_ID)..."
 
-curl -L -sSL -H "Authorization: Bearer ${GH_TOKEN}" -o /tmp/artifact.zip "${DOWNLOAD_URL}"
+curl -L -sSL -H "Authorization: Bearer ${GITHUB_TOKEN}" -o /tmp/artifact.zip "${DOWNLOAD_URL}"
 
 unzip -o /tmp/artifact.zip -d "$OUTDIR"
 
