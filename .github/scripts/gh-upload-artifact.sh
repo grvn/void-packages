@@ -62,7 +62,7 @@ CREATE_URL="https://uploads.github.com/repos/${GITHUB_REPOSITORY}/actions/artifa
 
 echo "Creating artifact '$ARTIFACT_NAME'..."
 
-ARTIFACT_ID=$(curl -SL \
+ARTIFACT_ID=$(curl -sSL \
   -X POST \
   -H "Authorization: Bearer ${GITHUB_TOKEN}" \
   -H "Content-Type: application/json" \

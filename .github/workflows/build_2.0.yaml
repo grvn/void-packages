@@ -232,22 +232,17 @@ jobs:
       #     pkgfile=$(ls hostdir/binpkgs/*.xbps | head -n1)
       #     echo "pkg=$(basename "$pkgfile")" >> $GITHUB_OUTPUT
 
-      - name: Upload built package
-        if: success()
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        working-directory: /work
-        shell: bash
+      - name: Copy logs to host
+        if: always()
         run: |
-          PKGDIR="/work/hostdir/binpkgs"
+          mkdir -p /__w/logs
+          cp -r /work/builddir/.xbps-src*/${{ matrix.package }}/*.log /__w/logs/ || true
 
-          if compgen -G "${PKGDIR}/*.xbps" > /dev/null; then
-            .github/scripts/gh-upload-artifact.sh \
-              "packages-${{ matrix.package }}-${{ matrix.libc }}" \
-              "$PKGDIR"
-          else
-            echo "No built packages found for ${{ matrix.package }} on ${{ matrix.libc }}"
-          fi
+      - name: Copy built packages to host
+        if: success()
+        run: |
+          mkdir -p /__w/packages
+          cp -r /work/hostdir/binpkgs/* /__w/packages/ || true
 
       # - name: Upload built package
       #   uses: actions/upload-artifact@v6
@@ -270,29 +265,35 @@ jobs:
       #     path: /work/builddir/.xbps-src*/${{ matrix.package }}/*.log
       #     retention-days: 7
 
-      - name: Upload logs on failure
-        if: failure()
-        id: uploadlogs
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        working-directory: /work
-        run: |
-          .github/scripts/gh-upload-artifact.sh \
-          --retention-days 7 \
-          "logs-${{ matrix.package }}-${{ matrix.libc }}" \
-          /work/builddir/.xbps-src*/${{ matrix.package }}/*.log
-
       - name: Add failure to summary
         if: failure()
         run: |
           {
             echo "### ❌ Package Build Failed"
             echo ""
-            echo "| Package | Libc | Logs |"
-            echo "|---------|------|------|"
-            echo "| \`${{ matrix.package }}\` | \`${{ matrix.libc }}\` | [View logs](${{ steps.uploadlogs.outputs.artifact-url }}) |"
+            echo "| Package | Libc |"
+            echo "|---------|------|"
+            echo "| \`${{ matrix.package }}\` | \`${{ matrix.libc }}\` |"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
+
+  upload:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: /__w/logs
+
+      - name: Upload built packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: /__w/packages
 
 # ------------------------------------------------------------
 # 4. RELEASE — merge artifacts, sign repo, publish release
