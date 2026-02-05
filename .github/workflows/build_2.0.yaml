@@ -176,7 +176,11 @@ jobs:
 
             mkdir -p hostdir/binpkgs
 
-            gh release download --pattern "*${{ matrix.arch }}*${{ matrix.libc }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
+            gh release download --pattern "*${{ matrix.arch }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
+            if [ "$ARCH" = x86_64 ]; then
+              rm --force hostdir/binpkgs/*x86_64-musl*
+            fi
+            rm --force hostdir/binpkgs/*.xbps.sig2
 
             echo "${{ matrix.package }}" > /tmp/templates
             sudo -Eu builder common/travis/build.sh
