@@ -148,7 +148,7 @@ jobs:
             libc: musl
 
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: source
 
@@ -237,7 +237,7 @@ jobs:
           merge-multiple: true
 
       - name: Upload merged repo
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: packages
           path: /repo
@@ -278,7 +278,7 @@ jobs:
             xbps-rindex -a ${{ matrix.pattern }}
 
       - name: Upload updated repo
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: repo-${{ matrix.arch }}
           path: /repo
