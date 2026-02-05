@@ -155,11 +155,11 @@ jobs:
 
       - run: tar xzf source.tgz --strip-components=1
 
-      - name: Run in ${{ matrix.libc }} Container
+      - name: Build in void-linux ${{ matrix.libc }} container
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250616R1
-          options: -v ${{ github.workspace }}:/work -v /dev:/dev --platform linux/amd64 --privileged
+          options: -v ${{ github.workspace }}:/work -v /dev:/dev --platform linux/amd64 --privileged -e GH_TOKEN=${{ github.token }}
           run: |
             mkdir -p /etc/xbps.d
             cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
@@ -180,10 +180,6 @@ jobs:
 
             echo "${{ matrix.package }}" > /tmp/templates
             sudo -Eu builder common/travis/build.sh
-
-      - run: |
-          pwd
-          ls -l
 
       - name: Upload logs on failure
         if: failure()
@@ -213,10 +209,6 @@ jobs:
           name: void-${{ matrix.package }}-${{ matrix.libc }}
           path: hostdir/binpkgs/*.xbps
 
-
-
-
-
       # - name: Restore distfiles cache
       #   working-directory: /work
       #   env:
@@ -231,7 +223,6 @@ jobs:
       #     GITHUB_TOKEN: ${{ github.token }}
       #   run: |
       #     .github/scripts/gh-cache-save.sh "distfiles-${{ matrix.libc }}" /work/hostdir/distfiles
-
 
 # ------------------------------------------------------------
 # 4. RELEASE — merge artifacts, sign repo, publish release
