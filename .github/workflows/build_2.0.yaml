@@ -159,7 +159,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250616R1
-          options: -v ${{ github.workspace }}:/work -v /dev:/dev --platform linux/amd64 --privileged -e GH_TOKEN=${{ github.token }}
+          options: -v ${{ github.workspace }}:/work -v /dev:/dev --platform linux/amd64 --privileged
           run: |
             mkdir -p /etc/xbps.d
             cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
@@ -173,14 +173,6 @@ jobs:
             sudo -Eu builder common/travis/set_mirror.sh &&
             sudo -Eu builder common/travis/prepare.sh &&
             common/travis/fetch-xtools.sh
-
-            mkdir -p hostdir/binpkgs
-
-            gh release download --pattern "${{ matrix.package }}*${{ matrix.arch }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
-            if [ "$ARCH" = x86_64 ]; then
-              rm --force hostdir/binpkgs/*x86_64-musl*
-            fi
-            rm --force hostdir/binpkgs/*.xbps.sig2
 
             echo "${{ matrix.package }}" > /tmp/templates
             sudo -Eu builder common/travis/build.sh
@@ -240,6 +232,17 @@ jobs:
       options: --platform linux/amd64
 
     steps:
+      - name: Download previously released artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          xbps-install -Syu xbps
+          xbps-install -yu
+          xbps-install -y curl zip unzip github-cli
+          mkdir -p /repo
+
+          gh release download --pattern "*.xbps" --dir /repo --repo grvn/void-packages || true
+
       - name: Download built packages
         uses: actions/download-artifact@v7
         with:
@@ -253,6 +256,7 @@ jobs:
           PRIVKEY: ${{ secrets.PRIV_KEY }}
           XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
         run: |
+          ls -l
           xbps-rindex --remove-obsoletes ${PWD}
           printf "%s\n" "${PRIVKEY}" > key.pem
           xbps-rindex --privkey key.pem --sign --signedby "${{ github.repository }}-github-actions" --verbose ${PWD}
