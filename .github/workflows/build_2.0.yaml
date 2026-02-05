@@ -273,11 +273,13 @@ jobs:
             sha512sum "${file}" | cut -d ' ' -f1 > "${file}.sha512sum"
           done
 
-      - name: Create new release
-        uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          name: "Build ${{ github.sha }}"
-          tag_name: ${{ env.TAG }}
-          files: /repo/*
+      - run: ls -l
+
+      # - name: Create new release
+      #   uses: softprops/action-gh-release@v2
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     name: "Build ${{ github.sha }}"
+      #     tag_name: ${{ env.TAG }}
+      #     files: /repo/*
