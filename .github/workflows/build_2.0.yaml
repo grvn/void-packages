@@ -176,7 +176,7 @@ jobs:
 
             mkdir -p hostdir/binpkgs
 
-            gh release download --pattern "*${{ matrix.arch }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
+            gh release download --pattern "${{ matrix.package }}*${{ matrix.arch }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
             if [ "$ARCH" = x86_64 ]; then
               rm --force hostdir/binpkgs/*x86_64-musl*
             fi
@@ -231,49 +231,49 @@ jobs:
 # ------------------------------------------------------------
 # 4. RELEASE — merge artifacts, sign repo, publish release
 # ------------------------------------------------------------
-  # newrelease:
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   if: ${{ github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
-  #   container:
-  #     image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1
-  #     options: --platform linux/amd64
+  newrelease:
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
+    container:
+      image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1
+      options: --platform linux/amd64
 
-  #   steps:
-  #     - name: Download built packages
-  #       uses: actions/download-artifact@v7
-  #       with:
-  #         path: /repo
-  #         pattern: void-*
-  #         merge-multiple: true
+    steps:
+      - name: Download built packages
+        uses: actions/download-artifact@v7
+        with:
+          path: /repo
+          pattern: void-*
+          merge-multiple: true
 
-  #     - name: Clean & sign
-  #       working-directory: /repo
-  #       env:
-  #         PRIVKEY: ${{ secrets.PRIV_KEY }}
-  #         XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
-  #       run: |
-  #         xbps-rindex --remove-obsoletes ${PWD}
-  #         printf "%s\n" "${PRIVKEY}" > key.pem
-  #         xbps-rindex --privkey key.pem --sign --signedby "${{ github.repository }}-github-actions" --verbose ${PWD}
-  #         xbps-rindex --privkey key.pem --sign-pkg --verbose ${PWD}/*.xbps
-  #         rm -f key.pem
-  #         xbps-rindex --clean ${PWD}
+      - name: Clean & sign
+        working-directory: /repo
+        env:
+          PRIVKEY: ${{ secrets.PRIV_KEY }}
+          XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
+        run: |
+          xbps-rindex --remove-obsoletes ${PWD}
+          printf "%s\n" "${PRIVKEY}" > key.pem
+          xbps-rindex --privkey key.pem --sign --signedby "${{ github.repository }}-github-actions" --verbose ${PWD}
+          xbps-rindex --privkey key.pem --sign-pkg --verbose ${PWD}/*.xbps
+          rm -f key.pem
+          xbps-rindex --clean ${PWD}
 
-  #     - name: checksum
-  #       working-directory: /repo
-  #       run: |
-  #         rm -rf *.sha256sum *.sha512sum
-  #         for file in *.xbps; do
-  #           sha256sum "${file}" | cut -d ' ' -f1 > "${file}.sha256sum"
-  #           sha512sum "${file}" | cut -d ' ' -f1 > "${file}.sha512sum"
-  #         done
+      - name: checksum
+        working-directory: /repo
+        run: |
+          rm -rf *.sha256sum *.sha512sum
+          for file in *.xbps; do
+            sha256sum "${file}" | cut -d ' ' -f1 > "${file}.sha256sum"
+            sha512sum "${file}" | cut -d ' ' -f1 > "${file}.sha512sum"
+          done
 
-  #     - name: Create new release
-  #       uses: softprops/action-gh-release@v2
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         name: "Build ${{ github.sha }}"
-  #         tag_name: ${{ env.TAG }}
-  #         files: /repo/*
+      - name: Create new release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: "Build ${{ github.sha }}"
+          tag_name: ${{ env.TAG }}
+          files: /repo/*
