@@ -134,8 +134,7 @@ jobs:
     needs: init
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' && needs.init.outputs.matrix != '[]' }}
-    # permissions:
-    #   contents: write
+    permissions: write-all
     strategy:
       fail-fast: false
       matrix:
@@ -149,121 +148,51 @@ jobs:
           - arch: x86_64-musl
             libc: musl
 
-    container:
-      image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250616R1
-      options: --platform linux/amd64 --privileged
-      volumes:
-        - /dev:/dev
-
     steps:
-      - name: Prepare container
-        run: |
-          mkdir -p /etc/xbps.d
-          cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
-          sed -i 's|repo-default|repo-ci|g' /etc/xbps.d/*-repository-*.conf
-          xbps-install -Syu xbps
-          xbps-install -yu
-          xbps-install -y sudo bash curl git jq zip unzip github-cli
-          useradd -G xbuilder -M builder
+      - uses: actions/download-artifact@v6
+        with:
+          name: source
 
-      - name: Clone and checkout
-        uses: classabbyamp/treeless-checkout-action@v1
+      - run: tar xzf source.tgz --strip-components=1
 
-      - name: Download and unpack prepared repo
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          .github/scripts/gh-download-artifacts.sh source /tmp
-          mkdir -p /work
-          tar xzf /tmp/source.tgz -C /work --strip-components=1
+      - name: Run in ${{ matrix.libc }} Container
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/void-linux/void-${{ matrix.libc }}-full:20250616R1
+          options: -v ${{ github.workspace }}:/work -v /dev:/dev --platform linux/amd64 --privileged
+          run: |
+            mkdir -p /etc/xbps.d
+            cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+            sed -i 's|repo-default|repo-ci|g' /etc/xbps.d/*-repository-*.conf
+            xbps-install -Syu xbps
+            xbps-install -yu
+            xbps-install -y sudo bash curl git jq zip unzip github-cli
+            useradd -G xbuilder -M builder
+            cd /work
+            chown -R builder:builder . &&
+            sudo -Eu builder common/travis/set_mirror.sh &&
+            sudo -Eu builder common/travis/prepare.sh &&
+            common/travis/fetch-xtools.sh
 
-      - name: Prepare masterdir
-        working-directory: /work
-        run: |
-          chown -R builder:builder . &&
-          sudo -Eu builder common/travis/set_mirror.sh &&
-          sudo -Eu builder common/travis/prepare.sh &&
-          common/travis/fetch-xtools.sh
+            mkdir -p hostdir/binpkgs
 
-      - name: Restore distfiles cache
-        working-directory: /work
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          .github/scripts/gh-cache-restore.sh \
-            "distfiles-${{ matrix.libc }}-${{ matrix.arch }}-${{ hashFiles('srcpkgs/**/template') }}" \
-            /work/hostdir/distfiles
+            gh release download --pattern "*${{ matrix.arch }}*${{ matrix.libc }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
 
-      - name: Download released packages
-        working-directory: /work
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p hostdir/binpkgs
+            echo "${{ matrix.package }}" > /tmp/templates
+            sudo -Eu builder common/travis/build.sh
 
-          gh release download --pattern "*${{ matrix.arch }}*${{ matrix.libc }}*.xbps" --dir hostdir/binpkgs --repo grvn/void-packages || true
+      - run: |
+          pwd
+          ls -l
 
-      # - name: Configure xbps-src
-      #   working-directory: /work
-      #   run: |
-      #     cat <<EOF >> etc/conf
-      #     XBPS_BUILD_ENVIRONMENT=ci
-      #     XBPS_ALLOW_RESTRICTED=yes
-      #     XBPS_CHROOT_CMD=ethereal
-      #     XBPS_ALLOW_CHROOT_BREAKOUT=yes
-      #     XBPS_MAKEJOBS=$(nproc)
-      #     EOF
-
-      #     [ -e masterdir ] || ln -s / masterdir
-
-      # -------------------- Packages to build --------------------
-
-      - name: Build package
-        working-directory: /work
-        run: |
-          echo "${{ matrix.package }}" > /tmp/templates
-          sudo -Eu builder common/travis/build.sh
-
-      # - name: Build package
-      #   id: build-package
-      #   working-directory: /work
-      #   run: |
-      #     ./xbps-src pkg "${{ matrix.package }}"
-      #     pkgfile=$(ls hostdir/binpkgs/*.xbps | head -n1)
-      #     echo "pkg=$(basename "$pkgfile")" >> $GITHUB_OUTPUT
-
-      - name: Copy logs to host
-        if: always()
-        run: |
-          mkdir -p /__w/logs/${{ matrix.package }}-${{ matrix.libc }}
-          cp -r /work/builddir/.xbps-src*/${{ matrix.package }}/*.log /__w/logs/${{ matrix.package }}-${{ matrix.libc }} || true
-
-      - name: Copy built packages to host
-        if: success()
-        run: |
-          mkdir -p /__w/packages/${{ matrix.package }}-${{ matrix.libc }}
-          cp -r /work/hostdir/binpkgs/*.xbps /__w/packages/${{ matrix.package }}-${{ matrix.libc }} || true
-
-      # - name: Upload built package
-      #   uses: actions/upload-artifact@v6
-      #   with:
-      #     name: void-${{ matrix.package }}-${{ matrix.libc }}
-      #     path: /work/hostdir/binpkgs/*.xbps
-
-      - name: Save distfiles cache
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          .github/scripts/gh-cache-save.sh "distfiles-${{ matrix.libc }}" /work/hostdir/distfiles
-
-      # - name: Upload logs on failure
-      #   if: failure()
-      #   id: uploadlogs
-      #   uses: actions/upload-artifact@v6
-      #   with:
-      #     name: logs-${{ matrix.package }}-${{ matrix.libc }}
-      #     path: /work/builddir/.xbps-src*/${{ matrix.package }}/*.log
-      #     retention-days: 7
+      - name: Upload logs on failure
+        if: failure()
+        id: uploadlogs
+        uses: actions/upload-artifact@v6
+        with:
+          name: logs-${{ matrix.package }}-${{ matrix.libc }}
+          path: builddir/.xbps-src*/${{ matrix.package }}/*.log
+          retention-days: 7
 
       - name: Add failure to summary
         if: failure()
@@ -271,72 +200,85 @@ jobs:
           {
             echo "### ❌ Package Build Failed"
             echo ""
-            echo "| Package | Libc |"
-            echo "|---------|------|"
-            echo "| \`${{ matrix.package }}\` | \`${{ matrix.libc }}\` |"
+            echo "| Package | Libc | Logs |"
+            echo "|---------|------|------|"
+            echo "| \`${{ matrix.package }}\` | \`${{ matrix.libc }}\` | [View logs](${{ steps.uploadlogs.outputs.artifact-url }}) |"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload logs
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: logs-${{ matrix.package }}-${{ matrix.libc }}
-          path: /__w/logs/${{ matrix.package }}-${{ matrix.libc }}
-
-      - name: Upload built packages
+      - name: Upload built package
         if: success()
         uses: actions/upload-artifact@v6
         with:
-          name: packages-${{ matrix.package }}-${{ matrix.libc }}
-          path: /__w/packages/${{ matrix.package }}-${{ matrix.libc }}
+          name: void-${{ matrix.package }}-${{ matrix.libc }}
+          path: hostdir/binpkgs/*.xbps
+
+
+
+
+
+      # - name: Restore distfiles cache
+      #   working-directory: /work
+      #   env:
+      #     GITHUB_TOKEN: ${{ github.token }}
+      #   run: |
+      #     .github/scripts/gh-cache-restore.sh \
+      #       "distfiles-${{ matrix.libc }}-${{ matrix.arch }}-${{ hashFiles('srcpkgs/**/template') }}" \
+      #       /work/hostdir/distfiles
+
+      # - name: Save distfiles cache
+      #   env:
+      #     GITHUB_TOKEN: ${{ github.token }}
+      #   run: |
+      #     .github/scripts/gh-cache-save.sh "distfiles-${{ matrix.libc }}" /work/hostdir/distfiles
+
 
 # ------------------------------------------------------------
 # 4. RELEASE — merge artifacts, sign repo, publish release
 # ------------------------------------------------------------
-  newrelease:
-    runs-on: ubuntu-latest
-    needs: build
-    if: ${{ github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
-    container:
-      image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1
-      options: --platform linux/amd64
+  # newrelease:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   if: ${{ github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
+  #   container:
+  #     image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1
+  #     options: --platform linux/amd64
 
-    steps:
-      - name: Download built packages
-        uses: actions/download-artifact@v7
-        with:
-          path: /repo
-          pattern: void-*
-          merge-multiple: true
+  #   steps:
+  #     - name: Download built packages
+  #       uses: actions/download-artifact@v7
+  #       with:
+  #         path: /repo
+  #         pattern: void-*
+  #         merge-multiple: true
 
-      - name: Clean & sign
-        working-directory: /repo
-        env:
-          PRIVKEY: ${{ secrets.PRIV_KEY }}
-          XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
-        run: |
-          xbps-rindex --remove-obsoletes ${PWD}
-          printf "%s\n" "${PRIVKEY}" > key.pem
-          xbps-rindex --privkey key.pem --sign --signedby "${{ github.repository }}-github-actions" --verbose ${PWD}
-          xbps-rindex --privkey key.pem --sign-pkg --verbose ${PWD}/*.xbps
-          rm -f key.pem
-          xbps-rindex --clean ${PWD}
+  #     - name: Clean & sign
+  #       working-directory: /repo
+  #       env:
+  #         PRIVKEY: ${{ secrets.PRIV_KEY }}
+  #         XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
+  #       run: |
+  #         xbps-rindex --remove-obsoletes ${PWD}
+  #         printf "%s\n" "${PRIVKEY}" > key.pem
+  #         xbps-rindex --privkey key.pem --sign --signedby "${{ github.repository }}-github-actions" --verbose ${PWD}
+  #         xbps-rindex --privkey key.pem --sign-pkg --verbose ${PWD}/*.xbps
+  #         rm -f key.pem
+  #         xbps-rindex --clean ${PWD}
 
-      - name: checksum
-        working-directory: /repo
-        run: |
-          rm -rf *.sha256sum *.sha512sum
-          for file in *.xbps; do
-            sha256sum "${file}" | cut -d ' ' -f1 > "${file}.sha256sum"
-            sha512sum "${file}" | cut -d ' ' -f1 > "${file}.sha512sum"
-          done
+  #     - name: checksum
+  #       working-directory: /repo
+  #       run: |
+  #         rm -rf *.sha256sum *.sha512sum
+  #         for file in *.xbps; do
+  #           sha256sum "${file}" | cut -d ' ' -f1 > "${file}.sha256sum"
+  #           sha512sum "${file}" | cut -d ' ' -f1 > "${file}.sha512sum"
+  #         done
 
-      - name: Create new release
-        uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          name: "Build ${{ github.sha }}"
-          tag_name: ${{ env.TAG }}
-          files: /repo/*
+  #     - name: Create new release
+  #       uses: softprops/action-gh-release@v2
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         name: "Build ${{ github.sha }}"
+  #         tag_name: ${{ env.TAG }}
+  #         files: /repo/*
