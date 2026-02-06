@@ -339,5 +339,9 @@ jobs:
         with:
           name: "Build ${{ github.sha }}"
           tag_name: ${{ env.TAG }}
-          files: /repo/*
-          draft: true
+          files: |
+            /repo/*.xbps
+            /repo/*.sha256sum
+            /repo/*.sha512sum
+            /repo/*.sig2
+            /repo/*repodata
