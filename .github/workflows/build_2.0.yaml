@@ -28,6 +28,8 @@ concurrency:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
         with:
@@ -62,6 +64,8 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: read
     container:
       image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1
       options: --platform linux/amd64
@@ -119,13 +123,12 @@ jobs:
           fi
 
           if [ -z "$change" ]; then
-            echo "[]" > /tmp/matrix.json
+            echo "matrix=[]" >> $GITHUB_OUTPUT
           else
             echo "XBPS_ALLOW_CHROOT_BREAKOUT=yes" > etc/conf
             echo "$change" | xargs ./xbps-src sort-dependencies | jq -R | jq -cs | tee /tmp/matrix.json
+            echo "matrix=$(cat /tmp/matrix.json)" >> $GITHUB_OUTPUT
           fi
-
-          echo "matrix=$(cat /tmp/matrix.json)" >> $GITHUB_OUTPUT
 
 # ------------------------------------------------------------
 # 3. BUILD — parallel builds, isolated dirs, upload artifacts
@@ -133,6 +136,8 @@ jobs:
   build:
     needs: init
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: ${{ github.ref == 'refs/heads/main' && needs.init.outputs.matrix != '[]' }}
     strategy:
       fail-fast: false
@@ -216,6 +221,8 @@ jobs:
     needs: build
     if: ${{ github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Install tools
         run: sudo apt-get update && sudo apt-get install -y gh jq
@@ -246,6 +253,8 @@ jobs:
   create-repodata:
     needs: prepare-release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -290,6 +299,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: create-repodata
+    permissions:
+      contents: write
     if: ${{ github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
     container:
       image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1
@@ -339,6 +350,7 @@ jobs:
         with:
           name: "Build ${{ github.sha }}"
           tag_name: ${{ env.TAG }}
+          draft: true
           files: |
             /repo/*.xbps
             /repo/*.sha256sum
