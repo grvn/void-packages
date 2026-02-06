@@ -221,18 +221,19 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y gh jq
 
       - name: Prepare repo directory
-        run: mkdir -p /repo
+        # ! Must be relative to ${{ github.workspace }}, not /
+        run: mkdir -p repo
 
       - name: Download previously released artifacts
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download --pattern "*.xbps" --dir /repo --repo grvn/void-packages || echo "No previous release or no .xbps assets"
+          gh release download --pattern "*.xbps" --dir repo --repo grvn/void-packages || echo "No previous release or no .xbps assets"
 
       - name: Download built packages
         uses: actions/download-artifact@v7
         with:
-          path: /repo
+          path: repo
           pattern: void-*
           merge-multiple: true
 
@@ -240,7 +241,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: packages
-          path: /repo
+          path: repo
 
   create-repodata:
     needs: prepare-release
@@ -265,13 +266,13 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: packages
-          path: /repo
+          path: repo
 
       - name: Rebuild repodata for ${{ matrix.arch }}
         uses: addnab/docker-run-action@v3
         with:
           image: ${{ matrix.image }}
-          options: -v /repo:/repo --platform linux/amd64
+          options: -v ${{ github.workspace }}/repo:/repo --platform linux/amd64
           run: |
             cd /repo
             rm -f ${{ matrix.repodata }}
@@ -281,7 +282,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: repo-${{ matrix.arch }}
-          path: /repo
+          path: repo
 
 # ------------------------------------------------------------
 # 4. RELEASE — merge artifacts, sign repo, publish release
