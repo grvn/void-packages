@@ -1,0 +1,25 @@
+name: Caller Void Linux Packages
+
+env:
+  TAG: build-${{ github.run_number }}-${{ github.sha }}
+  SHA: ${{ github.sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_package:
+        description: "Force rebuild of a specific package (optional)"
+        required: false
+        default: ""
+
+jobs:
+  prepare:
+    uses: ./.github/workflows/merge-repos.yaml
+    outputs:
+      artifact-name: ${{ jobs.prepare.outputs.artifact-name }}
+  release:
+    needs: prepare
+    uses: ./.github/workflows/new-release.yaml
+    with:
+      artifact-name: ${{ needs.prepare.outputs.artifact-name }}
+      force_package: ${{ github.event.inputs.force_package }}
