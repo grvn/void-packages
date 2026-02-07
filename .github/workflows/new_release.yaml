@@ -1,4 +1,4 @@
-name: Create a new Release Void Linux Packages
+name: Create a new Release
 
 on:
   workflow_call:  # Accepts input from the caller

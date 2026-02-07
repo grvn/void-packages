@@ -1,0 +1,44 @@
+name: Index and Sign Repo
+
+on:
+  workflow_call:
+    inputs:
+      arch:
+        required: true
+        type: string
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: repo-tree
+          path: .
+
+      - name: Merge old packages
+        run: |
+          mkdir -p repo/${{ inputs.arch }} oldrepo/${{ inputs.arch }}
+          cp oldrepo/${{ inputs.arch }}/*.xbps repo/${{ inputs.arch }}/ 2>/dev/null || true
+
+      - name: Rebuild repodata for ${{ inputs.arch }} and sign
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ matrix.image }}
+          options: -v ${{ github.workspace }}/repo:/repo --platform linux/amd64
+          run: |
+            cd repo/${{ inputs.arch }}
+            rm -f *repodata
+            xbps-rindex -a *.xbps
+
+            rm -rf *.sha256sum *.sha512sum
+            for file in *.xbps; do
+              sha256sum "${file}" | cut -d ' ' -f1 > "${file}.sha256sum"
+              sha512sum "${file}" | cut -d ' ' -f1 > "${file}.sha512sum"
+            done
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: indexed-repo-${{ inputs.arch }}
+          path: repo
