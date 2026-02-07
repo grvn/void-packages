@@ -6,6 +6,9 @@ on:
       arch:
         required: true
         type: string
+      libc:
+        required: true
+        type: string
 
 jobs:
   index:
@@ -25,12 +28,13 @@ jobs:
       - name: Rebuild repodata for ${{ inputs.arch }} and sign
         uses: addnab/docker-run-action@v3
         with:
-          image: ${{ matrix.image }}
+          image: ghcr.io/void-linux/void-${{ inputs.libc }}-full:20250616R1
           options: -v ${{ github.workspace }}/repo:/repo --platform linux/amd64
           run: |
             cd /repo/${{ inputs.arch }}
             rm -f *repodata
             xbps-rindex -a *.xbps
+
             rm -rf *.sha256sum *.sha512sum
             for file in *.xbps; do
               sha256sum "${file}" | cut -d ' ' -f1 > "${file}.sha256sum"

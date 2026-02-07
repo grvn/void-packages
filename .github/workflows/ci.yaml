@@ -59,9 +59,15 @@ jobs:
         arch:
           - x86_64
           - x86_64-musl
+        include:
+          - arch: x86_64
+            libc: glibc
+          - arch: x86_64-musl
+            libc: musl
     uses: ./.github/workflows/index.yaml
     with:
       arch: ${{ matrix.arch }}
+      libc: ${{ matrix.libc }}
 
   sign:
     needs: index
