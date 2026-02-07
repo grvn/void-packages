@@ -10,6 +10,7 @@ on:
       force_package:
         description: "Force rebuild of a specific package (optional)"
         required: false
+        type: string
         default: ""
 
 concurrency:

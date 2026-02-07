@@ -1,9 +1,5 @@
 name: Caller Void Linux Packages
 
-env:
-  TAG: build-${{ github.run_number }}-${{ github.sha }}
-  SHA: ${{ github.sha }}
-
 on:
   workflow_dispatch:
     inputs:
@@ -15,8 +11,6 @@ on:
 jobs:
   prepare:
     uses: ./.github/workflows/merge-repos.yaml
-    outputs:
-      artifact-name: ${{ jobs.prepare.outputs.artifact-name }}
   release:
     needs: prepare
     uses: ./.github/workflows/new-release.yaml
