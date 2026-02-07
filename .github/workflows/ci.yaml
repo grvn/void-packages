@@ -15,11 +15,11 @@ on:
 
 jobs:
   prepare:
-    uses: ./.github/workflows/merge-repos.yaml
+    uses: ./.github/workflows/merge_repos.yaml
 
   detect:
     needs: prepare
-    uses: ./.github/workflows/detect-changes.yaml
+    uses: ./.github/workflows/detect_changes.yaml
     with:
       artifact-name: ${{ needs.prepare.outputs.artifact-name }}
       force_package: ${{ github.event.inputs.force_package }}
@@ -39,7 +39,7 @@ jobs:
             libc: glibc
           - arch: x86_64-musl
             libc: musl
-    uses: ./.github/workflows/build-package.yaml
+    uses: ./.github/workflows/build_package.yaml
     with:
       artifact-name: ${{ needs.prepare.outputs.artifact-name }}
       package: ${{ matrix.package }}
@@ -49,7 +49,7 @@ jobs:
   repo_tree:
     needs: build
     if: ${{ needs.build.result == 'success' }}
-    uses: ./.github/workflows/repo-tree.yaml
+    uses: ./.github/workflows/repotree.yaml
 
   index:
     needs: repo_tree
@@ -74,7 +74,7 @@ jobs:
 
   diff:
     needs: sign
-    uses: ./.github/workflows/diff-dashboard.yaml
+    uses: ./.github/workflows/diff_dashboard.yaml
 
   release:
     needs: diff
