@@ -19,7 +19,7 @@ jobs:
 
   detect:
     needs: prepare
-    uses: ./.github/workflows/detect-changes.yml
+    uses: ./.github/workflows/detect-changes.yaml
     with:
       artifact-name: ${{ needs.prepare.outputs.artifact-name }}
       force_package: ${{ github.event.inputs.force_package }}
@@ -39,7 +39,7 @@ jobs:
             libc: glibc
           - arch: x86_64-musl
             libc: musl
-    uses: ./.github/workflows/build-package.yml
+    uses: ./.github/workflows/build-package.yaml
     with:
       artifact-name: ${{ needs.prepare.outputs.artifact-name }}
       package: ${{ matrix.package }}
@@ -49,7 +49,7 @@ jobs:
   repo_tree:
     needs: build
     if: ${{ needs.build.result == 'success' }}
-    uses: ./.github/workflows/repo-tree.yml
+    uses: ./.github/workflows/repo-tree.yaml
 
   index:
     needs: repo_tree
@@ -57,7 +57,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [ x86_64, x86_64-musl ]
-    uses: ./.github/workflows/index.yml
+    uses: ./.github/workflows/index.yaml
     with:
       arch: ${{ matrix.arch }}
 
@@ -67,14 +67,14 @@ jobs:
       fail-fast: false
       matrix:
         arch: [ x86_64, x86_64-musl ]
-    uses: ./.github/workflows/sign.yml
+    uses: ./.github/workflows/sign.yaml
     with:
       arch: ${{ matrix.arch }}
     secrets: inherit
 
   diff:
     needs: sign
-    uses: ./.github/workflows/diff-dashboard.yml
+    uses: ./.github/workflows/diff-dashboard.yaml
 
   release:
     needs: diff
