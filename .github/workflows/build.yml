@@ -6,11 +6,11 @@ env:
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - srcpkgs/**
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - srcpkgs/**
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

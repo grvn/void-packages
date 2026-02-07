@@ -1,6 +1,6 @@
 # Template file for 'destilled-fonts'
 pkgname=destilled-fonts
-version=1.1.0
+version=1.1.1
 revision=1
 _nerd_font_version=3.3.0
 _redhat_font_version=4.1.0
