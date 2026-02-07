@@ -64,7 +64,7 @@ jobs:
       arch: ${{ matrix.arch }}
 
   sign:
-    needs: repo_tree
+    needs: index
     uses: ./.github/workflows/sign.yaml
     secrets: inherit
 
