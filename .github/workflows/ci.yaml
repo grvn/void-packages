@@ -56,20 +56,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [ x86_64, x86_64-musl ]
+        arch:
+          - x86_64
+          - x86_64-musl
     uses: ./.github/workflows/index.yaml
     with:
       arch: ${{ matrix.arch }}
 
   sign:
     needs: repo_tree
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [ x86_64, x86_64-musl ]
     uses: ./.github/workflows/sign.yaml
-    with:
-      arch: ${{ matrix.arch }}
     secrets: inherit
 
   diff:
