@@ -58,6 +58,9 @@ jobs:
             # common/travis/fetch-xtools.sh
 
             echo "${{ inputs.package }}" > /tmp/templates
+
+            # Activate parallellism
+            export XBPS_MAKEJOBS=$(nproc)
             sudo -Eu builder common/travis/build.sh
 
       - name: Upload logs on failure
