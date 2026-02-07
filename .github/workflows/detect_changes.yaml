@@ -25,8 +25,8 @@ jobs:
       image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1
       options: --platform linux/amd64
     outputs:
-      matrix: ${{ steps.out.outputs.matrix }}
-      should_run: ${{ steps.out.outputs.should_run }}
+      matrix: ${{ steps.find-packages.outputs.matrix }}
+      should_run: ${{ steps.find-packages.outputs.should_run }}
 
     steps:
       - name: Prep container
@@ -48,7 +48,7 @@ jobs:
           bsdtar xzf source.tgz -C /work --strip-components=1
 
       - name: Identify new packages to build
-        id: find-packages # out
+        id: find-packages
         working-directory: /work
         env:
           GH_TOKEN: ${{ github.token }}
