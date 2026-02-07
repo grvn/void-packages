@@ -14,6 +14,8 @@ jobs:
   release:
     needs: prepare
     uses: ./.github/workflows/new_release.yaml
+    permissions:
+      contents: write
     with:
       artifact-name: ${{ needs.prepare.outputs.artifact-name }}
       force_package: ${{ github.event.inputs.force_package }}
