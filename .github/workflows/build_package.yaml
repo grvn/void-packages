@@ -20,9 +20,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # container:
-    #   image: ghcr.io/void-linux/void-${{ inputs.libc }}-full:20250616R1
-    #   options: --platform linux/amd64 --privileged
 
     steps:
       - uses: actions/download-artifact@v7
@@ -31,8 +28,7 @@ jobs:
           path: .
 
       - name: Unpack merged repo
-        run: |
-          bsdtar xzf source.tgz --strip-components=1
+        run: tar xzf source.tgz --strip-components=1
 
       - name: Restore distfiles cache
         uses: actions/cache@v4
