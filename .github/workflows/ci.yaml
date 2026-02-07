@@ -15,7 +15,7 @@ on:
 
 jobs:
   prepare:
-    uses: ./.github/workflows/merged-repos.yaml
+    uses: ./.github/workflows/merge-repos.yaml
 
   detect:
     needs: prepare
