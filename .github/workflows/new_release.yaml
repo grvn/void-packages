@@ -53,6 +53,7 @@ jobs:
         working-directory: /work
         env:
           GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
         run: |
           git config --global --add safe.directory /work
 
