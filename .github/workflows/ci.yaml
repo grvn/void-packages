@@ -71,7 +71,15 @@ jobs:
 
   sign:
     needs: index
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x86_64
+          - x86_64-musl
     uses: ./.github/workflows/sign.yaml
+    with:
+      arch: ${{ matrix.arch }}
     secrets: inherit
 
   diff:
