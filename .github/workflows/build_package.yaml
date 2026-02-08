@@ -44,24 +44,21 @@ jobs:
           image: ghcr.io/void-linux/void-${{ inputs.libc }}-full:20250616R1
           options: -v ${{ github.workspace }}:/work -v /dev:/dev --platform linux/amd64 --privileged
           run: |
-            mkdir -p /etc/xbps.d
-            cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+            # switch to repo-ci mirror
+            mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
             sed -i 's|repo-default|repo-ci|g' /etc/xbps.d/*-repository-*.conf
-            xbps-install -Syu xbps
-            xbps-install -yu
-            xbps-install -y sudo bash curl git jq zip unzip github-cli
-            useradd -G xbuilder -M builder || true
+            # install dependencies
+            xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash grep curl git jq zip unzip github-cli
+            # create non-root user
+            useradd -G xbuilder -M builder
+
             cd /work
             chown -R builder:builder .
             sudo -Eu builder common/travis/set_mirror.sh
             sudo -Eu builder common/travis/prepare.sh
-            # common/travis/fetch-xtools.sh
 
             echo "${{ inputs.package }}" > /tmp/templates
-
-            # Activate parallellism
-            export XBPS_MAKEJOBS=$(nproc)
-            sudo -Eu builder common/travis/build.sh
+            sudo -Eu builder common/travis/build.sh "${{ inputs.arch }}" "${{ inputs.arch }}"
 
       - name: Upload logs on failure
         if: failure()
