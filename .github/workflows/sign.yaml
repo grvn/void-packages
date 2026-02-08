@@ -1,4 +1,4 @@
-name: Index and Sign Repo
+name: Sign Repo
 
 on:
   workflow_call:
@@ -28,6 +28,9 @@ jobs:
           PRIVKEY: ${{ secrets.PRIV_KEY }}
           XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
         run: |
+          pwd
+          ls -l
+
           printf "%s\n" "${PRIVKEY}" > key.pem
           xbps-rindex --privkey key.pem --sign --signedby "${{ github.repository }}-github-actions" --verbose /repo
           xbps-rindex --privkey key.pem --sign-pkg --verbose /repo/*.xbps
