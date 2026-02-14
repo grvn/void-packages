@@ -39,7 +39,7 @@ jobs:
             distfiles-${{ inputs.arch }}
 
       - name: Build
-        uses: addnab/docker-run-action@v3
+        uses: maus007/docker-run-action-fork@207a4e2a8ebf7e4b985656ba990b1e53715dce2a
         with:
           image: ghcr.io/void-linux/void-${{ inputs.libc }}-full:20250616R1
           options: -v ${{ github.workspace }}:/work -v /dev:/dev --platform linux/amd64 --privileged
