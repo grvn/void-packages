@@ -15,6 +15,7 @@ on:
 
 jobs:
   index:
+    name: index-${{ inputs.arch }}
     runs-on: ubuntu-latest
     outputs:
       produced: ${{ steps.check.outputs.exists }}

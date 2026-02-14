@@ -70,23 +70,27 @@ jobs:
       libc: ${{ matrix.libc }}
 
   collect_indexed_arches:
-    needs: index
+    needs:
+      - index-x86_64
+      - index-x86_64-musl
+      - index-aarch64
+      - index-aarch64-musl
     runs-on: ubuntu-latest
     outputs:
       arches: ${{ steps.collect.outputs.arches }}
     steps:
-      - name: Collect arches with artifacts
-        id: collect
+      - id: collect
         run: |
           arr=()
+
           for arch in x86_64 x86_64-musl aarch64 aarch64-musl; do
-            produced="${{ needs.index.outputs[format('{0}.produced', arch)] }}"
+            produced="${{ needs[format('index-{0}', arch)].outputs.produced }}"
             if [ "$produced" = "true" ]; then
               arr+=("\"$arch\"")
             fi
           done
-          echo "arches=[$(IFS=,; echo "${arr[*]}")]" >> $GITHUB_OUTPUT
 
+          echo "arches=[$(IFS=,; echo "${arr[*]}")]" >> $GITHUB_OUTPUT
 
   sign:
     needs: collect_indexed_arches
