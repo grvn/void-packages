@@ -13,7 +13,7 @@ on:
         required: true
 
 jobs:
-  index:
+  sign:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1
@@ -22,9 +22,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v7
         with:
-          pattern: indexed-repo-*
-          merge-multiple: true
-          path: /repo
+          name: indexed-repo-${{ inputs.arch }}
+          path: /repo/${{ inputs.arch }}
 
       - name: Sign repo
         working-directory: /repo/${{ inputs.arch }}
@@ -39,5 +38,5 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: signed-repo
-          path: /repo
+          name: signed-repo-${{ inputs.arch }}
+          path: /repo/${{ inputs.arch }}

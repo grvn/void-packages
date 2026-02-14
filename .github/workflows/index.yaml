@@ -9,6 +9,9 @@ on:
       libc:
         required: true
         type: string
+    outputs:
+      artifact_name:
+        value: indexed-repo-${{ inputs.arch }}
 
 jobs:
   index:
@@ -20,12 +23,36 @@ jobs:
           name: repo-tree
           path: .
 
-      - name: Merge old packages
+      - name: Check if this arch has any packages
+        id: check
         run: |
-          mkdir -p repo/${{ inputs.arch }} oldrepo/${{ inputs.arch }}
+          newdir="repo/${{ inputs.arch }}"
+          olddir="oldrepo/${{ inputs.arch }}"
+
+          newcount=$(ls "$newdir"/*.xbps 2>/dev/null | wc -l || true)
+          oldcount=$(ls "$olddir"/*.xbps 2>/dev/null | wc -l || true)
+
+          if [ "$newcount" -eq 0 ] && [ "$oldcount" -eq 0 ]; then
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "No packages for ${{ inputs.arch }} — skipping."
+          else
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Found packages for ${{ inputs.arch }} — processing."
+          fi
+
+      # Safe guard against race condition in github actions
+      - name: Stop early if no packages exist
+        if: steps.check.outputs.exists == 'false'
+        run: exit 0
+
+      - name: Merge old packages
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          mkdir -p repo/${{ inputs.arch }}
           cp oldrepo/${{ inputs.arch }}/*.xbps repo/${{ inputs.arch }}/ 2>/dev/null || true
 
-      - name: Rebuild repodata for ${{ inputs.arch }} and sign
+      - name: Rebuild repodata for ${{ inputs.arch }}
+        if: steps.check.outputs.exists == 'true'
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/void-linux/void-${{ inputs.libc }}-full:20250616R1
@@ -36,6 +63,7 @@ jobs:
             xbps-rindex -a *.xbps
 
       - uses: actions/upload-artifact@v6
+        if: steps.check.outputs.exists == 'true'
         with:
           name: indexed-repo-${{ inputs.arch }}
-          path: repo
+          path: repo/${{ inputs.arch }}

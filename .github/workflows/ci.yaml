@@ -96,7 +96,8 @@ jobs:
       - name: Download signed repo
         uses: actions/download-artifact@v7
         with:
-          name: signed-repo
+          pattern: signed-repo-*
+          merge-multiple: true
           path: repo
 
       - name: Download diff.md
