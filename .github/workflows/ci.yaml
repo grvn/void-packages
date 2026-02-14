@@ -84,7 +84,15 @@ jobs:
           arr=()
 
           for arch in x86_64 x86_64-musl aarch64 aarch64-musl; do
-            produced="${{ needs[format('index-{0}', arch)].outputs.produced }}"
+            # Build the job name
+            job="index-${arch}"
+
+            # Read the output from that job
+            produced="${{ needs.index-x86_64.outputs.produced }}"
+            if [ "$arch" = "x86_64-musl" ]; then produced="${{ needs.index-x86_64-musl.outputs.produced }}"; fi
+            if [ "$arch" = "aarch64" ]; then produced="${{ needs.index-aarch64.outputs.produced }}"; fi
+            if [ "$arch" = "aarch64-musl" ]; then produced="${{ needs.index-aarch64-musl.outputs.produced }}"; fi
+
             if [ "$produced" = "true" ]; then
               arr+=("\"$arch\"")
             fi
