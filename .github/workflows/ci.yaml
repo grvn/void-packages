@@ -86,10 +86,9 @@ jobs:
       - id: collect
         run: |
           arr=()
-          for f in results/index-result-*; do
-            arch="${f#results/index-result-}"
-            arch="${arch%.txt}"
-            produced=$(cat "$f")
+          for d in results/index-result-*; do
+            arch="${d#results/index-result-}"
+            produced=$(cat "$d/produced.txt")
             if [ "$produced" = "true" ]; then
               arr+=("\"$arch\"")
             fi
