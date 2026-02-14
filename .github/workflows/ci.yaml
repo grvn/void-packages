@@ -69,14 +69,31 @@ jobs:
       arch: ${{ matrix.arch }}
       libc: ${{ matrix.libc }}
 
-  sign:
+  collect_indexed_arches:
     needs: index
+    runs-on: ubuntu-latest
+    outputs:
+      arches: ${{ steps.collect.outputs.arches }}
+    steps:
+      - name: Collect arches with artifacts
+        id: collect
+        run: |
+          arr=()
+          for arch in x86_64 x86_64-musl aarch64 aarch64-musl; do
+            produced="${{ needs.index.outputs[format('{0}.produced', arch)] }}"
+            if [ "$produced" = "true" ]; then
+              arr+=("\"$arch\"")
+            fi
+          done
+          echo "arches=[$(IFS=,; echo "${arr[*]}")]" >> $GITHUB_OUTPUT
+
+
+  sign:
+    needs: collect_indexed_arches
     strategy:
       fail-fast: false
       matrix:
-        arch:
-          - x86_64
-          - x86_64-musl
+        arch: ${{ fromJson(needs.collect_indexed_arches.outputs.arches) }}
     uses: ./.github/workflows/sign.yaml
     with:
       arch: ${{ matrix.arch }}

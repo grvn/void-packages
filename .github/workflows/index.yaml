@@ -10,12 +10,14 @@ on:
         required: true
         type: string
     outputs:
-      artifact_name:
-        value: indexed-repo-${{ inputs.arch }}
+      produced:
+        value: ${{ jobs.index.outputs.produced }}
 
 jobs:
   index:
     runs-on: ubuntu-latest
+    outputs:
+      produced: ${{ steps.check.outputs.exists }}
 
     steps:
       - uses: actions/download-artifact@v7
