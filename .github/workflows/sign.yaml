@@ -14,7 +14,6 @@ on:
 
 jobs:
   sign:
-    name: sign-${{ inputs.arch }}
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/void-linux/void-buildroot-glibc:20251206R1

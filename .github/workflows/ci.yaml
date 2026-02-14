@@ -70,34 +70,30 @@ jobs:
       libc: ${{ matrix.libc }}
 
   collect_indexed_arches:
-    needs:
-      - index-x86_64
-      - index-x86_64-musl
-      - index-aarch64
-      - index-aarch64-musl
+    needs: index
     runs-on: ubuntu-latest
     outputs:
       arches: ${{ steps.collect.outputs.arches }}
+
     steps:
+      - name: Download all index results
+        uses: actions/download-artifact@v7
+        with:
+          pattern: index-result-*
+          merge-multiple: false
+          path: results
+
       - id: collect
         run: |
           arr=()
-
-          for arch in x86_64 x86_64-musl aarch64 aarch64-musl; do
-            # Build the job name
-            job="index-${arch}"
-
-            # Read the output from that job
-            produced="${{ needs.index-x86_64.outputs.produced }}"
-            if [ "$arch" = "x86_64-musl" ]; then produced="${{ needs.index-x86_64-musl.outputs.produced }}"; fi
-            if [ "$arch" = "aarch64" ]; then produced="${{ needs.index-aarch64.outputs.produced }}"; fi
-            if [ "$arch" = "aarch64-musl" ]; then produced="${{ needs.index-aarch64-musl.outputs.produced }}"; fi
-
+          for f in results/index-result-*; do
+            arch="${f#results/index-result-}"
+            arch="${arch%.txt}"
+            produced=$(cat "$f")
             if [ "$produced" = "true" ]; then
               arr+=("\"$arch\"")
             fi
           done
-
           echo "arches=[$(IFS=,; echo "${arr[*]}")]" >> $GITHUB_OUTPUT
 
   sign:

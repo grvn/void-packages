@@ -9,16 +9,10 @@ on:
       libc:
         required: true
         type: string
-    outputs:
-      produced:
-        value: ${{ jobs.index.outputs.produced }}
 
 jobs:
   index:
-    name: index-${{ inputs.arch }}
     runs-on: ubuntu-latest
-    outputs:
-      produced: ${{ steps.check.outputs.exists }}
 
     steps:
       - uses: actions/download-artifact@v7
@@ -37,11 +31,19 @@ jobs:
 
           if [ "$newcount" -eq 0 ] && [ "$oldcount" -eq 0 ]; then
             echo "exists=false" >> $GITHUB_OUTPUT
+            echo "false" > produced.txt
             echo "No packages for ${{ inputs.arch }} — skipping."
           else
             echo "exists=true" >> $GITHUB_OUTPUT
+            echo "true" > produced.txt
             echo "Found packages for ${{ inputs.arch }} — processing."
           fi
+
+      - name: Upload produced flag
+        uses: actions/upload-artifact@v7
+        with:
+          name: index-result-${{ inputs.arch }}
+          path: produced.txt
 
       # Safe guard against race condition in github actions
       - name: Stop early if no packages exist
