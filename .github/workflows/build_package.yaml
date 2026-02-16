@@ -45,7 +45,7 @@ jobs:
             -v /dev:/dev \
             --platform linux/amd64 \
             --privileged \
-            --entrypoint=bash \
+            --entrypoint=/bin/sh \
             ghcr.io/void-linux/void-${{ inputs.libc }}-full:20250616R1 \
             -c '
             # switch to repo-ci mirror
