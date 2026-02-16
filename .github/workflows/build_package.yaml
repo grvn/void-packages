@@ -39,11 +39,15 @@ jobs:
             distfiles-${{ inputs.arch }}
 
       - name: Build
-        uses: maus007/docker-run-action-fork@207a4e2a8ebf7e4b985656ba990b1e53715dce2a
-        with:
-          image: ghcr.io/void-linux/void-${{ inputs.libc }}-full:20250616R1
-          options: -v ${{ github.workspace }}:/work -v /dev:/dev --platform linux/amd64 --privileged
-          run: |
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            -v /dev:/dev \
+            --platform linux/amd64 \
+            --privileged \
+            --entrypoint=bash \
+            ghcr.io/void-linux/void-${{ inputs.libc }}-full:20250616R1 \
+            -c '
             # switch to repo-ci mirror
             mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
             sed -i 's|repo-default|repo-ci|g' /etc/xbps.d/*-repository-*.conf
@@ -59,6 +63,29 @@ jobs:
 
             echo "${{ inputs.package }}" > /tmp/templates
             sudo -Eu builder common/travis/build.sh "${{ inputs.arch }}" "${{ inputs.arch }}"
+            '
+
+      # - name: Build
+      #   uses: maus007/docker-run-action-fork@207a4e2a8ebf7e4b985656ba990b1e53715dce2a
+      #   with:
+      #     image: ghcr.io/void-linux/void-${{ inputs.libc }}-full:20250616R1
+      #     options: -v ${{ github.workspace }}:/work -v /dev:/dev --platform linux/amd64 --privileged
+      #     run: |
+      #       # switch to repo-ci mirror
+      #       mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+      #       sed -i 's|repo-default|repo-ci|g' /etc/xbps.d/*-repository-*.conf
+      #       # install dependencies
+      #       xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash grep curl git jq zip unzip github-cli
+      #       # create non-root user
+      #       useradd -G xbuilder -M builder
+
+      #       cd /work
+      #       chown -R builder:builder .
+      #       sudo -Eu builder common/travis/set_mirror.sh
+      #       sudo -Eu builder common/travis/prepare.sh
+
+      #       echo "${{ inputs.package }}" > /tmp/templates
+      #       sudo -Eu builder common/travis/build.sh "${{ inputs.arch }}" "${{ inputs.arch }}"
 
       - name: Upload logs on failure
         if: failure()
