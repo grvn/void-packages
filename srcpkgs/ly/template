@@ -2,7 +2,7 @@
 pkgname=ly
 version=1.0.3
 revision=1
-archs="i686 x86_64"
+archs="i686 x86_64*"
 build_style=zig-build
 #build_wrksrc=
 #configure_args="installrunit"

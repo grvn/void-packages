@@ -29,6 +29,7 @@ jobs:
           xbps-install -y xtools
 
       - name: Generate diff
+        # TODO: xpkgdiff reports user error, wrong arguments
         run: |
           echo "## 📦 Package Changes (xpkgdiff)" > diff.md
           echo "" >> diff.md
