@@ -63,7 +63,9 @@ jobs:
 
             echo "${{ inputs.package }}" > /tmp/templates
             sudo -Eu builder common/travis/build.sh "${{ inputs.arch }}" "${{ inputs.arch }}"
+            exit=$?
             sudo -Eu builder xbarf > byggloggen.log
+            exit $exit
             '
 
       # - name: Build
