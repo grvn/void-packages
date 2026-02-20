@@ -52,7 +52,7 @@ jobs:
             mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
             sed -i '\''s|repo-default|repo-ci|g'\'' /etc/xbps.d/*-repository-*.conf
             # install dependencies
-            xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash grep curl git jq zip unzip github-cli
+            xbps-install -Syu xbps && xbps-install -yu && xbps-install -y sudo bash grep curl git jq zip unzip github-cli xtools
             # create non-root user
             useradd -G xbuilder -M builder
 
@@ -63,6 +63,7 @@ jobs:
 
             echo "${{ inputs.package }}" > /tmp/templates
             sudo -Eu builder common/travis/build.sh "${{ inputs.arch }}" "${{ inputs.arch }}"
+            sudo -Eu builder xbarf > byggloggen.log
             '
 
       # - name: Build
@@ -93,7 +94,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: logs-${{ inputs.package }}-${{ inputs.libc }}
-          path: builddir/.xbps-src*/${{ inputs.package }}/*.log
+          path: byggloggen.log
           retention-days: 7
 
       - name: Add failure to summary
