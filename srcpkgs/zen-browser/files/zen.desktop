@@ -11,7 +11,7 @@ Type=Application
 Categories=Network;WebBrowser;
 Keywords=Internet;WWW;Browser;Web;Explorer
 MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;application/x-xpinstall;application/pdf;application/json;
-Actions=new-window;new-private-window;profilemanager;
+Actions=new-window;new-private-window;profilemanager;safe-mode;
 X-MultipleArgs=false
 StartupWMClass=zen
 
@@ -26,3 +26,7 @@ Exec=zen --private-window %u
 [Desktop Action profilemanager]
 Name=Open the Profile Manager
 Exec=zen --ProfileManager %u
+
+[Desktop Action safe-mode]
+Name=Start in Safe Mode
+Exec=zen --safe-mode
