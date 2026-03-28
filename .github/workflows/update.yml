@@ -15,6 +15,7 @@ jobs:
       matrix:
         pkg:
           - brave-browser
+          - dgop
           # - lazyssh
           - ly
           - obsidian
