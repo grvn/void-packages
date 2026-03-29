@@ -62,7 +62,7 @@ jobs:
         run: |
           dir="${{ steps.pkgdir.outputs.dir }}"
           name="${{ steps.pkgdir.outputs.name }}"
-          logfile="$dir/update.log"
+          logfile="$name.log"
 
           echo "Running update for $name" | tee "$logfile"
           if bash "${{ matrix.pkg }}" 2>&1 | tee -a "$logfile"; then
@@ -81,7 +81,13 @@ jobs:
           path: |
             ${{ steps.pkgdir.outputs.dir }}/*
 
-  push-updates:
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: logs
+          path: ${{ steps.pkgdir.outputs.name }}.log
+
+  commit-updates:
     runs-on: ubuntu-latest
     needs: update-versions
     if: always()
@@ -96,14 +102,19 @@ jobs:
         with:
           path: ./srcpkgs
 
+      - name: Download logs
+        uses: actions/download-artifact@v7
+        with:
+          name: logs
+          path: logs
+
       - name: Package update results summary
         run: |
           echo "## Package Update Results" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Package | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Package | Status | Log |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---------|--------|-----|" >> "$GITHUB_STEP_SUMMARY"
 
-          shopt -s nullglob
           for pkgdir in srcpkgs/*; do
             pkg=$(basename "$pkgdir")
             status="unknown"
@@ -112,11 +123,24 @@ jobs:
               status=$(cat "$pkgdir/status.txt")
             fi
 
-            if [ "$status" = "success" ]; then
-              echo "| $pkg | 🟢 Success |" >> "$GITHUB_STEP_SUMMARY"
+            logfile="logs/$pkg.log"
+            if [ -f "$logfile" ]; then
+              loglink="[view](./logs/$pkg.log)"
             else
-              echo "| $pkg | 🔴 Failed |" >> "$GITHUB_STEP_SUMMARY"
+              loglink="N/A"
             fi
+
+            case "$status" in
+              success)
+                echo "| $pkg | 🟢 Success | $loglink |" >> "$GITHUB_STEP_SUMMARY"
+                ;;
+              failure)
+                echo "| $pkg | 🔴 Failed | $loglink |" >> "$GITHUB_STEP_SUMMARY"
+                ;;
+              *)
+                echo "| $pkg | ⚪ N/A | $loglink |" >> "$GITHUB_STEP_SUMMARY"
+                ;;
+            esac
           done
 
       - name: Remove status files
