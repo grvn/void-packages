@@ -24,7 +24,11 @@ jobs:
           if [ -z "$updates" ]; then
             echo "pkgs=[]" >> "$GITHUB_OUTPUT"
           else
-            echo "$updates" | jq -R | jq -cs | tee pkgs.json
+            echo "$updates" | while read path; do
+              pkg=$(basename "$(dirname "$path")")
+              echo "{\"path\":\"$path\",\"name\":\"$pkg\"}"
+            done | jq -cs > pkgs.json
+
             echo "pkgs=$(cat pkgs.json)" >> "$GITHUB_OUTPUT"
           fi
 
@@ -51,21 +55,14 @@ jobs:
       #     GH_TOKEN: ${{ github.token }}
       #   continue-on-error: true
 
-      - name: Determine package directory
-        id: pkgdir
-        run: |
-          dir=$(dirname "${{ matrix.pkg }}")
-          echo "dir=$dir" >> "$GITHUB_OUTPUT"
-          echo "name=$(basename "$dir")" >> "$GITHUB_OUTPUT"
-
       - name: Run updates
         run: |
-          dir="${{ steps.pkgdir.outputs.dir }}"
-          name="${{ steps.pkgdir.outputs.name }}"
-          logfile="$name.log"
+          pkg="${{ matrix.pkg.name }}"
+          dir="$(dirname "${{ matrix.pkg.path }}")"
+          logfile="$pkg.log"
 
-          echo "Running update for $name" | tee "$logfile"
-          if bash "${{ matrix.pkg }}" 2>&1 | tee -a "$logfile"; then
+          echo "Running update for $pkg" | tee "$logfile"
+          if bash "${{ matrix.pkg.path }}" 2>&1 | tee -a "$logfile"; then
             echo "success" > "$dir/status.txt"
           else
             echo "failure" > "$dir/status.txt"
@@ -77,15 +74,15 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: ${{ steps.pkgdir.outputs.name }}
+          name: ${{ matrix.pkg.name }}
           path: |
-            ${{ steps.pkgdir.outputs.dir }}/*
+            $(dirname ${{ matrix.pkg.path }})/*
 
       - uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: log-${{ steps.pkgdir.outputs.name }}
-          path: ${{ steps.pkgdir.outputs.name }}.log
+          name: log-${{ matrix.pkg.name }}
+          path: ${{ matrix.pkg.name }}.log
 
   commit-updates:
     runs-on: ubuntu-latest
