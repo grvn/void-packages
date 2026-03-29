@@ -57,9 +57,11 @@ jobs:
       #   continue-on-error: true
 
       - name: Run updates
+        id: "update"
         run: |
           pkg="${{ matrix.pkg.name }}"
           dir="$(dirname "${{ matrix.pkg.path }}")"
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
           logfile="$pkg.log"
 
           echo "Running update for $pkg" | tee "$logfile"
@@ -76,8 +78,7 @@ jobs:
         if: always()
         with:
           name: ${{ matrix.pkg.name }}
-          path: |
-            $(dirname ${{ matrix.pkg.path }})/*
+          path: ${{ steps.update.outputs.dir }}/*
 
       - uses: actions/upload-artifact@v6
         if: always()
