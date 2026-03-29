@@ -101,11 +101,14 @@ jobs:
       - uses: actions/download-artifact@v7
         with:
           path: ./srcpkgs
+          pattern: "*"
+          exclude: "log-*"
 
       - name: Download logs
         uses: actions/download-artifact@v7
         with:
           path: logs
+          pattern: "log-*"
 
       - name: Package update results summary
         run: |
