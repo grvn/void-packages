@@ -24,10 +24,11 @@ jobs:
           if [ -z "$updates" ]; then
             echo "pkgs=[]" >> "$GITHUB_OUTPUT"
           else
-            echo "$updates" | while read path; do
-              pkg=$(basename "$(dirname "$path")")
-              echo "{\"path\":\"$path\",\"name\":\"$pkg\"}"
-            done | jq -cs > pkgs.json
+            while read path; do
+              dir=$(dirname "$path")
+              pkg=$(basename "$dir")
+              echo "{\"dir\":\"$dir\",\"name\":\"$pkg\",\"path\":\"$path\"}"
+            done <<< "${updates}" | jq -cs > pkgs.json
 
             echo "pkgs=$(cat pkgs.json)" >> "$GITHUB_OUTPUT"
           fi
@@ -60,8 +61,7 @@ jobs:
         id: "update"
         run: |
           pkg="${{ matrix.pkg.name }}"
-          dir="$(dirname "${{ matrix.pkg.path }}")"
-          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+          dir="${{ matrix.pkg.dir }}"
           logfile="$pkg.log"
 
           echo "Running update for $pkg" | tee "$logfile"
@@ -78,7 +78,7 @@ jobs:
         if: always()
         with:
           name: ${{ matrix.pkg.name }}
-          path: ${{ steps.update.outputs.dir }}/*
+          path: ${{ matrix.pkg.dir }}/*
 
       - uses: actions/upload-artifact@v6
         if: always()
