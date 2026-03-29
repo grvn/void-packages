@@ -132,10 +132,18 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PULL_PUSH }}
 
-      - uses: actions/download-artifact@v7
-        with:
-          name: ${{ needs.find-autoupdates.outputs.pkgs }}
-          path: ./srcpkgs
+      # - uses: actions/download-artifact@v7
+      #   with:
+      #     name: ${{ needs.find-autoupdates.outputs.pkgs }}
+      #     path: ./srcpkgs
+
+      - name: Download only package directories
+        run: |
+          for pkg in ${{ join(fromJson(needs.find-autoupdates.outputs.pkgs), ' ') }}; do
+            echo "Downloading $pkg"
+            # Download only the artifact named exactly as the package
+            actions/download-artifact@v7 --name "$pkg" --path "srcpkgs/$pkg"
+          done
 
       - name: Package update results summary
         run: |
