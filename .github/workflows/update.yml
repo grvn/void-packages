@@ -62,7 +62,7 @@ jobs:
         run: |
           pkg="${{ matrix.pkg.name }}"
           dir="${{ matrix.pkg.dir }}"
-          logfile="$pkg.log"
+          logfile="$dir/update.log"
 
           echo "Running update for $pkg" | tee "$logfile"
           if bash "${{ matrix.pkg.path }}" 2>&1 | tee -a "$logfile"; then
@@ -80,12 +80,6 @@ jobs:
           name: ${{ matrix.pkg.name }}
           path: ${{ matrix.pkg.dir }}/*
 
-      - uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          name: log-${{ matrix.pkg.name }}
-          path: ${{ matrix.pkg.name }}.log
-
   commit-updates:
     runs-on: ubuntu-latest
     needs: update-versions
@@ -100,14 +94,6 @@ jobs:
       - uses: actions/download-artifact@v7
         with:
           path: ./srcpkgs
-          pattern: "*"
-          exclude: "log-*"
-
-      - name: Download logs
-        uses: actions/download-artifact@v7
-        with:
-          path: logs
-          pattern: "log-*"
 
       - name: Package update results summary
         run: |
@@ -148,6 +134,7 @@ jobs:
       - name: Remove status files
         run: |
           find srcpkgs -mindepth 2 -maxdepth 2 -type f -name status.txt -exec rm {} \;
+          find srcpkgs -mindepth 2 -maxdepth 2 -type f -name update.log -exec rm {} \;
 
       - name: Updated templates summary
         run: |
