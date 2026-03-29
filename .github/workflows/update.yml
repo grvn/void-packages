@@ -62,23 +62,52 @@ jobs:
         run: |
           pkg="${{ matrix.pkg.name }}"
           dir="${{ matrix.pkg.dir }}"
-          logfile="$dir/update.log"
+          logfile="update.log"
 
-          echo "Running update for $pkg" | tee "$logfile"
-          if bash "${{ matrix.pkg.path }}" 2>&1 | tee -a "$logfile"; then
-            echo "success" > "$dir/status.txt"
-          else
-            echo "failure" > "$dir/status.txt"
-          fi
+          printf "Running update for %s" $pkg | tee "$logfile"
+          bash "${{ matrix.pkg.path }}" 2>&1 | tee -a "$logfile"
         env:
           GH_TOKEN: ${{ github.token }}
         continue-on-error: true
 
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ hashFiles('outcome') }}
+          path: outcome
+
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: log-${{ matrix.pkg.name }}
+          path: update.log
+
       - uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: ${{ matrix.pkg.name }}
+          name: template-${{ matrix.pkg.name }}
           path: ${{ matrix.pkg.dir }}/*
+
+      - if: ${{ !cancelled() }}
+        run: |
+          jq -cn \
+            --arg pkg ${{ matrix.pkg.name }} \
+            --arg outcome ${{ steps.update.outcome }} \
+            --arg log "[log](log-${{ matrix.pkg.name }}/update.log)" \
+            '$ARGS.named' > outcome
+
+  collect:
+    needs: update-versions
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    outputs:
+      outcomes: ${{ steps.collect.outputs.outcomes }}
+    steps:
+      - uses: actions/download-artifact@v7
+      - id: collect
+        run: |
+          outcomes="$(cat */outcome | jq -c --slurp .)"
+          echo outcomes=$outcomes >> $GITHUB_OUTPUT
 
   commit-updates:
     runs-on: ubuntu-latest
@@ -94,6 +123,7 @@ jobs:
       - uses: actions/download-artifact@v7
         with:
           path: ./srcpkgs
+          pattern: template-*
 
       - name: Package update results summary
         run: |
@@ -102,39 +132,17 @@ jobs:
           echo "| Package | Status | Log |" >> "$GITHUB_STEP_SUMMARY"
           echo "|---------|--------|-----|" >> "$GITHUB_STEP_SUMMARY"
 
-          shopt -s nullglob
-          for pkgdir in srcpkgs/*; do
-            pkg=$(basename "$pkgdir")
-            status="unknown"
-
-            if [ -f "$pkgdir/status.txt" ]; then
-              status=$(cat "$pkgdir/status.txt")
-            fi
-
-            logfile="logs/log-$pkg/$pkg.log"
-            if [ -f "$logfile" ]; then
-              loglink="[view](./$logfile)"
-            else
-              loglink="N/A"
-            fi
-
-            case "$status" in
-              success)
-                echo "| $pkg | 🟢 Success | $loglink |" >> "$GITHUB_STEP_SUMMARY"
-                ;;
-              failure)
-                echo "| $pkg | 🔴 Failed | $loglink |" >> "$GITHUB_STEP_SUMMARY"
-                ;;
-              *)
-                echo "| $pkg | ⚪ N/A | $loglink |" >> "$GITHUB_STEP_SUMMARY"
-                ;;
-            esac
-          done
-
-      - name: Remove status files
-        run: |
-          find srcpkgs -mindepth 2 -maxdepth 2 -type f -name status.txt -exec rm {} \;
-          find srcpkgs -mindepth 2 -maxdepth 2 -type f -name update.log -exec rm {} \;
+          # Convert JSON array into markdown rows
+          jq -r '.[] |
+            .emoji = (
+              if .outcome == "success" then "🟢"
+              elif .outcome == "failure" then "🔴"
+              else "⚪"
+              end
+            ) |
+            "| \(.pkg) | \(.emoji) \(.outcome) | \(.log) |"
+          ' <<< '${{ steps.collect.outputs.outcomes }}' \
+            >> "$GITHUB_STEP_SUMMARY"
 
       - name: Updated templates summary
         run: |
