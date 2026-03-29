@@ -33,6 +33,7 @@ jobs:
           fi
 
   update-versions:
+    name: update ${{ matrix.pkg.name }}
     runs-on: ubuntu-latest
     needs: find-autoupdates
     if: ${{ needs.find-autoupdates.outputs.pkgs != '[]' }}
