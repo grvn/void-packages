@@ -34,7 +34,7 @@ jobs:
           done <<< "${updates}" | jq -cs > matrix.json
 
           # separat lista med bara pkg-namn
-          jq -r '.[].name' matrix.json | jq -cs > pkgs.json
+          jq -c 'map(.name)' matrix.json > pkgs.json
 
           echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
           echo "pkgs=$(cat pkgs.json)" >> "$GITHUB_OUTPUT"
