@@ -84,7 +84,7 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: logs
+          name: log-${{ steps.pkgdir.outputs.name }}
           path: ${{ steps.pkgdir.outputs.name }}.log
 
   commit-updates:
@@ -105,7 +105,6 @@ jobs:
       - name: Download logs
         uses: actions/download-artifact@v7
         with:
-          name: logs
           path: logs
 
       - name: Package update results summary
@@ -115,6 +114,7 @@ jobs:
           echo "| Package | Status | Log |" >> "$GITHUB_STEP_SUMMARY"
           echo "|---------|--------|-----|" >> "$GITHUB_STEP_SUMMARY"
 
+          shopt -s nullglob
           for pkgdir in srcpkgs/*; do
             pkg=$(basename "$pkgdir")
             status="unknown"
@@ -123,9 +123,9 @@ jobs:
               status=$(cat "$pkgdir/status.txt")
             fi
 
-            logfile="logs/$pkg.log"
+            logfile="logs/log-$pkg/$pkg.log"
             if [ -f "$logfile" ]; then
-              loglink="[view](./logs/$pkg.log)"
+              loglink="[view](./$logfile)"
             else
               loglink="N/A"
             fi
