@@ -29,7 +29,6 @@ jobs:
           xbps-install -y xtools
 
       - name: Generate diff
-        # TODO: xpkgdiff reports user error, wrong arguments
         run: |
           echo "## 📦 Package Changes (xpkgdiff)" > diff.md
           echo "" >> diff.md
@@ -42,7 +41,7 @@ jobs:
               oldpkg=$(ls oldrepo/${arch}/${name}-*.xbps 2>/dev/null || true)
               [ -n "$oldpkg" ] || continue
 
-              diff=$(xpkgdiff "$oldpkg" "$newpkg" || true)
+              diff=$(xpkgdiff -R repo "$newpkg" || true)
               if [ -n "$diff" ]; then
                 echo "### ${name} (${arch})" >> diff.md
                 echo '```' >> diff.md
