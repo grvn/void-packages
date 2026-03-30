@@ -7,11 +7,11 @@ on:
         description: "Force rebuild of a specific package (optional)"
         required: false
         default: ""
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - srcpkgs/**
+  push:
+    branches:
+      - main
+    paths:
+      - srcpkgs/**
 
 jobs:
   prepare:
