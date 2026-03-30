@@ -1,8 +1,8 @@
 # ---------------------------------------------------------
 # GitHub Linguist configuration
-# Force the file named "template" to be treated as Bash
+# Force the file named "template" or ".template" to be treated as Bash
 # ---------------------------------------------------------
-template linguist-language=bash
+{template,.template} linguist-language=bash
 
 # ---------------------------------------------------------
 # Whitespace rules for diff/patch files
@@ -12,5 +12,4 @@ template linguist-language=bash
 # These file types often contain literal whitespace that
 # must remain unchanged
 # ---------------------------------------------------------
-*.diff whitespace=-space-before-tab,-trailing-space
-*.patch whitespace=-space-before-tab,-trailing-space
+*.{diff,patch} whitespace=-space-before-tab,-trailing-space
