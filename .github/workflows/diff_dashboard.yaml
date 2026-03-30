@@ -31,7 +31,7 @@ jobs:
       - name: Generate diff
         run: |
           echo "## 📦 Package Changes (xpkgdiff)" > diff.md
-          echo "" >> diff.md
+          touch diff.md
 
           for arch in x86_64 x86_64-musl; do
             for newpkg in repo/${arch}/*.xbps; do
@@ -41,14 +41,13 @@ jobs:
               oldpkg=$(ls oldrepo/${arch}/${name}-*.xbps 2>/dev/null || true)
               [ -n "$oldpkg" ] || continue
 
-              diff=$(xpkgdiff -R repo "$newpkg" || true)
-              if [ -n "$diff" ]; then
-                echo "### ${name} (${arch})" >> diff.md
-                echo '```' >> diff.md
-                echo "$diff" >> diff.md
-                echo '```' >> diff.md
-                echo "" >> diff.md
-              fi
+              filediff=$(xpkgdiff -a ${arch} -R https://github.com/grvn/void-packages/releases/latest/download/ -f "$newpkg" || true)
+              metadiff=$(xpkgdiff -a ${arch} -R https://github.com/grvn/void-packages/releases/latest/download/ -S "$newpkg" || true)
+              depdiff=$(xpkgdiff -a ${arch} -R https://github.com/grvn/void-packages/releases/latest/download/ -x "$newpkg" || true)
+
+              printf "\x1b[34mFile Diff of %s (%s):\x1b[0m\n```\n%s```\n" ${name} ${arch} ${filediff} >> diff.md
+              printf "\x1b[34mMetadata Diff of %s (%s):\x1b[0m\n```\n%s```\n" ${name} ${arch} ${metadiff} >> diff.md
+              printf "\x1b[34mDependency Diff of %s (%s):\x1b[0m\n```\n%s```\n" ${name} ${arch} ${depdiff} >> diff.md
             done
           done
 
