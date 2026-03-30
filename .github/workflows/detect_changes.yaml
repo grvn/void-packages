@@ -34,7 +34,7 @@ jobs:
           echo "/usr/libexec/chroot-git" >> "$GITHUB_PATH"
           # cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
           xbps-install -Syu xbps
-          xbps-install -yu
+          # xbps-install -yu
           xbps-install -y github-cli jq
 
       - uses: actions/download-artifact@v7

@@ -25,7 +25,7 @@ jobs:
       - name: Install tools
         run: |
           xbps-install -Syu xbps
-          xbps-install -yu
+          # xbps-install -yu
           xbps-install -y xtools
 
       - name: Generate diff

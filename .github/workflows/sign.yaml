@@ -31,13 +31,9 @@ jobs:
           PRIVKEY: ${{ secrets.PRIV_KEY }}
           XBPS_PASSPHRASE: ${{ secrets.SIGN_PASS }}
         run: |
-          echo $PWD
           printf "%s\n" "${PRIVKEY}" > key.pem
-          echo "debug 1"
-          xbps-rindex --privkey key.pem --sign --signedby "${{ github.repository }}-github-actions" --verbose .
-          echo "debug 2"
-          xbps-rindex --privkey key.pem --sign-pkg --verbose ./*.xbps
-          echo "debug 3"
+          xbps-rindex --privkey key.pem --sign --signedby "${{ github.repository }}-github-actions" --verbose --debug .
+          xbps-rindex --privkey key.pem --sign-pkg --verbose --debug ./*.xbps
           rm -f key.pem
 
       - uses: actions/upload-artifact@v6
