@@ -31,7 +31,7 @@ jobs:
         run: tar xzf source.tgz --strip-components=1
 
       - name: Restore distfiles cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: hostdir/distfiles
           key: distfiles-${{ inputs.arch }}

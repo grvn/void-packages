@@ -81,6 +81,7 @@ jobs:
 
           if [ -z "$change" ]; then
             echo "matrix=[]" >> $GITHUB_OUTPUT
+            echo "No changes detected." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "XBPS_ALLOW_CHROOT_BREAKOUT=yes" > etc/conf
             echo "$change" | xargs ./xbps-src sort-dependencies | jq -R | jq -cs | tee matrix.json
