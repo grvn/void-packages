@@ -4,7 +4,16 @@ printf "Checking latest version\n"
 
 __dir="$(dirname "${BASH_SOURCE[0]}")"
 
-LATEST_VERSION=$(git ls-remote --tags --refs --sort="v:refname" https://github.com/openshift/oc openshift-clients-\* | tail -n1 | sed 's/.*\///')
+LATEST_VERSION=$(git ls-remote --tags --refs https://github.com/openshift/oc | grep -o 'openshift-clients-\(v\)\?[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\{8,14\}$' \
+  | awk -F- '
+      {
+        ts = $NF
+        while (length(ts) < 14) ts = ts "0"
+        print ts, $0
+      }
+    ' \
+  | sort -nr | head -n1 | cut -d' ' -f2-
+)
 VERSION=${LATEST_VERSION#"openshift-clients-"}
 CUR_VERSION=$(grep -E '^version=' ${__dir}/template | cut -d= -f2)
 CUR_TIMESTAMP=$(grep -E '^timestamp=' ${__dir}/template | cut -d= -f2)
