@@ -29,6 +29,8 @@ jobs:
           xbps-install -y xtools
 
       - name: Generate diff
+        env:
+          DIFF: 'diff --unified=0 --report-identical-files --suppress-common-lines --color=always --label REPO --label BUILT'
         run: |
           echo "## 📦 Package Changes (xpkgdiff)" > diff.md
           touch diff.md
