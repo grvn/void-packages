@@ -47,9 +47,9 @@ jobs:
               metadiff=$(xpkgdiff -a ${arch} -R https://github.com/grvn/void-packages/releases/latest/download/ -S "$newpkg" || true)
               depdiff=$(xpkgdiff -a ${arch} -R https://github.com/grvn/void-packages/releases/latest/download/ -x "$newpkg" || true)
 
-              printf "File Diff of %s (%s):\n```\n%s```\n" ${name} ${arch} ${filediff} >> diff.md
-              printf "Metadata Diff of %s (%s):\n```\n%s```\n" ${name} ${arch} ${metadiff} >> diff.md
-              printf "Dependency Diff of %s (%s):\n```\n%s```\n" ${name} ${arch} ${depdiff} >> diff.md
+              printf "File Diff av %s (%s):\n```\n%s```\n" ${name} ${arch} ${filediff} >> diff.md
+              printf "Metadata Diff av %s (%s):\n```\n%s```\n" ${name} ${arch} ${metadiff} >> diff.md
+              printf "Dependency Diff av %s (%s):\n```\n%s```\n" ${name} ${arch} ${depdiff} >> diff.md
             done
           done
 
