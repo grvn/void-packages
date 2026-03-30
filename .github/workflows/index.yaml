@@ -65,7 +65,7 @@ jobs:
           options: -v ${{ github.workspace }}/repo:/repo --platform linux/amd64
           run: |
             cd /repo/${{ inputs.arch }}
-            rm -f *repodata
+            rm -rf *repodata
             xbps-rindex -a *.xbps
 
       - uses: actions/upload-artifact@v6
