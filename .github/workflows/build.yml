@@ -111,7 +111,9 @@ jobs:
     uses: ./.github/workflows/diff_dashboard.yaml
 
   release:
-    needs: diff
+    needs:
+      - diff
+      - prepare
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -133,7 +135,7 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Build ${{ github.sha }}"
-          tag_name: build-${{ github.run_number }}-${{ github.sha }}
+          name: "Bygge ${{ needs.prepare.outputs.short-sha }}"
+          tag_name: "workflow-${{ github.run_number }}"
           body_path: diff.md
           files: repo/**
