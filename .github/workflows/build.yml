@@ -111,7 +111,9 @@ jobs:
     uses: ./.github/workflows/diff_dashboard.yaml
 
   release:
-    needs: diff
+    needs:
+      - diff
+      - prepare
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -130,13 +132,10 @@ jobs:
           name: diff-md
           path: .
 
-      - name: short sha
-        run: printf "SHORT_SHA=%s" $(git rev-parse --short ${{ github.sha }}) >> $GITHUB_ENV
-
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Bygge ${{ env.SHORT_SHA }}"
+          name: "Bygge ${{ needs.prepare.outputs.short-sha }}"
           tag_name: "workflow-${{ github.run_number }}"
           body_path: diff.md
           files: repo/**

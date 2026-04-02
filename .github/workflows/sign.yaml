@@ -41,4 +41,3 @@ jobs:
         with:
           name: signed-repo-${{ inputs.arch }}
           path: /repo/${{ inputs.arch }}
-          retention-days: 5
