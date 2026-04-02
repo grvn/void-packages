@@ -6,16 +6,12 @@ on:
       artifact-name:
         description: "Name of the uploaded artifact"
         value: ${{ jobs.merge.outputs.artifact-name }}
-      short-sha:
-        description: "Shortened sha of this git commit"
-        value: ${{ jobs.merge.outputs.short-sha }}
 
 jobs:
   merge:
     runs-on: ubuntu-latest
     outputs:
       artifact-name: ${{ steps.set-artifact-name.outputs.name }}
-      short-sha:  ${{ steps.sha.outputs.sha }}
     steps:
       - name: Set artifact name (unique per run)
         id: set-artifact-name
@@ -39,11 +35,6 @@ jobs:
           git merge --no-commit --strategy-option=theirs --allow-unrelated-histories -Xignore-space-change overlay/main
 
           find -mindepth 1 -maxdepth 1 -exec tar czf source.tgz {} \+
-
-      - name: short sha
-        id: sha
-        run: |
-          echo "sha=$(git rev-parse --short ${SHA})" >> $GITHUB_OUTPUT
 
       - name: Upload prepared merged repo
         uses: actions/upload-artifact@v6

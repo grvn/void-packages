@@ -68,3 +68,4 @@ jobs:
           path: |
             repo
             oldrepo
+          retention-days: 1
