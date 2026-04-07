@@ -10,6 +10,14 @@
 &nbsp;
 [![Updates](https://img.shields.io/github/actions/workflow/status/grvn/void-packages/update.yml?style=for-the-badge&label=AUTO-UPDATE&logo=github&logoColor=white)](https://github.com/grvn/void-packages/actions)
 
+
+![GitHub](https://img.shields.io/github/license/grvn/void-packages?style=for-the-badge&label=License&color=purple&logo=gitbook)
+![GitHub contributors](https://img.shields.io/github/contributors/grvn/void-packages?style=for-the-badge&color=purple&logo=github&label=Contributors)
+![GitHub release (with filter)](https://img.shields.io/github/v/release/grvn/void-packages?style=for-the-badge&logo=github&label=Release&color=purple)
+![GitHub issues](https://img.shields.io/github/issues-raw/grvn/void-packages?style=for-the-badge&label=Open%20Issues&logo=github&color=purple)
+![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/grvn/void-packages?style=for-the-badge&label=Closed%20Issues&logo=github&color=purple)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/grvn/void-packages/main?style=for-the-badge&label=Last%20Commit&logo=github&color=purple)
+
 <p><sup>Packages built daily · Indexed and signed automatically</sup></p>
 
 </div>
