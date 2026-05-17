@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: repo-tree
           path: .
@@ -40,7 +40,7 @@ jobs:
           fi
 
       - name: Upload produced flag
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: index-result-${{ inputs.arch }}
           path: produced.txt
@@ -68,7 +68,7 @@ jobs:
             rm -rf *repodata
             xbps-rindex -a *.xbps
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: steps.check.outputs.exists == 'true'
         with:
           name: indexed-repo-${{ inputs.arch }}

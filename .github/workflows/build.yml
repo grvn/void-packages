@@ -81,7 +81,7 @@ jobs:
 
     steps:
       - name: Download all index results
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: index-result-*
           merge-multiple: false
@@ -124,14 +124,14 @@ jobs:
 
     steps:
       - name: Download signed repo
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: signed-repo-*
           merge-multiple: true
           path: repo
 
       - name: Download diff.md
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: diff-md
           path: .

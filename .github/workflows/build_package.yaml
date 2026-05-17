@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.artifact-name }}
           path: .
@@ -93,7 +93,7 @@ jobs:
       - name: Upload logs on failure
         if: failure()
         id: uploadlogs
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: logs-${{ inputs.package }}-${{ inputs.libc }}
           path: byggloggen.log
@@ -113,7 +113,7 @@ jobs:
 
       - name: Upload package
         if: success()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: built-${{ inputs.package }}-${{ inputs.arch }}
           path: hostdir/binpkgs/*.xbps

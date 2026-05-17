@@ -20,7 +20,7 @@ jobs:
       options: --platform linux/amd64
 
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: indexed-repo-${{ inputs.arch }}
           path: /repo/${{ inputs.arch }}
@@ -37,7 +37,7 @@ jobs:
           xbps-rindex --privkey key.pem --sign-pkg --verbose ./*.xbps
           rm -f key.pem
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: signed-repo-${{ inputs.arch }}
           path: /repo/${{ inputs.arch }}

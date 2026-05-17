@@ -42,7 +42,7 @@ jobs:
       # 2. Download newly built packages
       # ----------------------------------------------------------
       - name: Download newly built packages
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: repo_raw
           pattern: built-*
@@ -62,7 +62,7 @@ jobs:
       # 3. Upload repo-tree artifact
       # ----------------------------------------------------------
       - name: Upload merged repo tree
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: repo-tree
           path: |
