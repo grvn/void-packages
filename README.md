@@ -72,7 +72,6 @@ xbps-install -Su
 | `brave-browser` (stable) | https://www.brave.com/                            | :white_check_mark: |
 | `destilled-fonts`        | <opinionized list of fonts I want>                | :x: |
 | `dgop`                   | https://github.com/AvengeMedia/dgop               | :white_check_mark: |
-| `ly` (TUI dm)            | https://github.com/fairyglade/ly                  | :x: [bug #7](https://github.com/grvn/void-packages/issues/7) |
 | `obsidian`.md            | https://obsidian.md/                              | :white_check_mark: |
 | `openshift-oc` (oc cli)  | https://github.com/openshift/oc                   | :white_check_mark: |
 | `pexip-infinity-connect` | https://www.pexip.com/                            | :x: |
@@ -85,6 +84,7 @@ xbps-install -Su
 ## 📦 Archived packages
 | package | homepage | reason |
 |:--------|:---------|:-------|
+| `ly` (TUI dm)            | https://github.com/fairyglade/ly                  | I can't get it to work anymore, I do not have the time to troubleshoot it and I'm not using it anymore. The last version I was able to build will linger in the releases for the time being |
 | `pet`                    | https://github.com/knqyf263/pet                   | available in [upstream void-packages](https://github.com/void-linux/void-packages) |
 | `river-bedload`          | https://git.sr.ht/~novakane/river-bedload         | available in [upstream void-packages](https://github.com/void-linux/void-packages) |
 
