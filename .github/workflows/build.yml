@@ -13,6 +13,10 @@ on:
     paths:
       - srcpkgs/**
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   prepare:
     uses: ./.github/workflows/merge_repos.yaml
