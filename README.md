@@ -67,8 +67,8 @@ xbps-install -Su
 ```
 
 ## 📦 Available packages
-| package | source | automatic update |
-|:--------|:-------|:-----------------|
+| package | homepage | automatic update |
+|:--------|:---------|:-----------------|
 | `brave-browser` (stable) | https://www.brave.com/                            | :white_check_mark: |
 | `destilled-fonts`        | <opinionized list of fonts I want>                | :x: |
 | `dgop`                   | https://github.com/AvengeMedia/dgop               | :white_check_mark: |
@@ -83,8 +83,8 @@ xbps-install -Su
 | `zen-browser` (stable)   | https://www.zen-browser.app/                      | :white_check_mark: |
 
 ## 📦 Archived packages
-| package | source | reason |
-|:--------|:-------|:-----------------|
+| package | homepage | reason |
+|:--------|:---------|:-------|
 | `pet`                    | https://github.com/knqyf263/pet                   | available in [upstream void-packages](https://github.com/void-linux/void-packages) |
 | `river-bedload`          | https://git.sr.ht/~novakane/river-bedload         | available in [upstream void-packages](https://github.com/void-linux/void-packages) |
 
