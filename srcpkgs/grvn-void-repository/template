@@ -1,0 +1,14 @@
+# Template file for 'grvn-void-repository'
+pkgname=grvn-void-repository
+version=1.0
+revision=1
+short_desc="Sign key and configuration file for grvn-void-packages repository"
+maintainer="Rickard <@>"
+license="Public Domain"
+homepage="https://github.com/grvn/void-packages"
+
+do_install() {
+    vinstall ${FILESDIR}/ee:04:bb:97:bf:cd:bb:73:6e:97:85:e6:a2:29:0a:b1.plist 644 var/db/xbps/keys
+
+    vinstall ${FILESDIR}/grvn-void-repository.conf 644 etc/xbps.d
+}

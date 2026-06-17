@@ -3,8 +3,12 @@
 <img src="https://voidlinux.org/assets/img/void_bg.png" width="75" />
 
 <h1>Custom XBPS Void Linux Software Repository</h1>
+or
+<h1>Void User Repository</h1>
+or
+<h1>Void Community repository</h1>
 
-<p>A (sometimes) self-updating, signed package repository for Void Linux containing packages that I want but have not found in any of the [mirrors](https://xmirror.voidlinux.org/).</p>
+<p>A (sometimes) self-updating, signed package repository for Void Linux containing packages that I want but have not found in any of the <a href=https://xmirror.voidlinux.org/>mirrors</a>.</p>
 
 [![Build](https://img.shields.io/github/actions/workflow/status/grvn/void-packages/build.yml?style=for-the-badge&label=BUILD&logo=githubactions&logoColor=white)](https://github.com/grvn/void-packages/actions)
 &nbsp;
