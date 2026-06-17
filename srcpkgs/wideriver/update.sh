@@ -8,7 +8,7 @@ __dir="$(dirname "${BASH_SOURCE[0]}")"
 TEMPLATE=${__dir}/template
 REPO="alex-courtis/wideriver"
 
-LATEST_VERSION=$(gh release list --repo ${REPO} --json name,tagName,isLatest --jq '.[] | select(.isLatest)|.tagName')
+LATEST_VERSION=$(gh release list --repo ${REPO} --exclude-drafts --exclude-pre-releases --json name,tagName,isLatest --jq '.[] | select(.isLatest)|.tagName')
 export VERSION=${LATEST_VERSION#"v"}
 CURRENT_VERSION=$(grep -E '^version=' "${TEMPLATE}" | cut -d= -f2)
 
