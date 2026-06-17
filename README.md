@@ -80,7 +80,6 @@ xbps-install -Su
 | `openshift-oc` (oc cli)  | https://github.com/openshift/oc                   | :white_check_mark: |
 | `pexip-infinity-connect` | https://www.pexip.com/                            | :x: |
 | `rebos`                  | https://gitlab.com/Oglo12/rebos                   | :white_check_mark: |
-| `river-status`           | https://github.com/grvn/river-status              | :white_check_mark: |
 | `vesktop`                | https://vesktop.vencord.dev/                      | :white_check_mark: |
 | `wideriver`              | https://github.com/alex-courtis/wideriver         | :white_check_mark: |
 | `zen-browser` (stable)   | https://www.zen-browser.app/                      | :white_check_mark: |
@@ -91,6 +90,7 @@ xbps-install -Su
 | `ly` (TUI dm)            | https://github.com/fairyglade/ly                  | I can't get it to work anymore, I do not have the time to troubleshoot it and I'm not using it anymore. The last version I was able to build will linger in the releases for the time being |
 | `pet`                    | https://github.com/knqyf263/pet                   | available in [upstream void-packages](https://github.com/void-linux/void-packages) |
 | `river-bedload`          | https://git.sr.ht/~novakane/river-bedload         | available in [upstream void-packages](https://github.com/void-linux/void-packages) |
+| `river-status`           | https://github.com/grvn/river-status              | I haven't used `river` for a while so maintaining it has become more timeconsuming, which I do not have time for ;( |
 
 ## 🛠 Troubleshooting
 
