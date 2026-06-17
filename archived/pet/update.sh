@@ -15,7 +15,7 @@ printf "Latest version is: %s\nLatest built version is: %s\n" "${VERSION}" "${CU
 gh release download -R knqyf263/pet --archive=tar.gz --output "pet.tar.gz"
 export SHA256=$(sha256sum ./pet.tar.gz | cut -d ' ' -f1 )
 rm ./pet.tar.gz
-[[ ! ${SHA256} =~ ^[a-z0-9]+$ ]] && printf "got junk instead of sha256\n" && exit 1
+[[ -n ${SHA256} && ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]] && printf "got junk instead of sha256\n" && exit 1
 
 envsubst '${SHA256} ${VERSION}' < ${__dir}/.template > ${__dir}/template
 
