@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # TODO: denna är fel, ändra till Codeberg
 
 printf "Checking latest version\n"

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 printf "Checking latest version\n"
 
 __dir="$(dirname "${BASH_SOURCE[0]}")"
