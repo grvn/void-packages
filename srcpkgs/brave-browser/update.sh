@@ -15,7 +15,7 @@ CURRENT_VERSION=$(grep -E '^version=' "${TEMPLATE}" | cut -d= -f2)
 printf "Latest version is: %s\nLatest built version is: %s\n" "${VERSION}" "${CURRENT_VERSION}"
 [ "${CURRENT_VERSION}" = "${VERSION}" ] && printf "No new version to release\n" && exit 0
 
-export SHA256=$(curl -L https://github.com/${REPO}/releases/download/v${VERSION}/brave-browser-${VERSION}-linux-amd64.zip.sha256 | cut -d ' ' -f1 )
+export SHA256=$(curl --fail --location --retry 3 --retry-delay 2 --silent https://github.com/${REPO}/releases/download/v${VERSION}/brave-browser-${VERSION}-linux-amd64.zip.sha256 | cut -d ' ' -f1 )
 [[ -n ${SHA256} && ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]] && printf "got junk instead of sha256\n" && exit 1
 
 sed -i "s|^version=.*$|version=${VERSION}|" "${TEMPLATE}"
