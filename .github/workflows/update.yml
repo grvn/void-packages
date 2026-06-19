@@ -58,13 +58,6 @@ jobs:
 
       - uses: dcarbone/install-jq-action@v3.2.0
 
-      # - name: Run updates
-      #   run: |
-      #     find srcpkgs -mindepth 2 -maxdepth 2 -type f -name update.sh -exec {} \;
-      #   env:
-      #     GH_TOKEN: ${{ github.token }}
-      #   continue-on-error: true
-
       - name: Run updates
         run: bash "${{ matrix.pkg.path }}"
         env:
