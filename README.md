@@ -43,12 +43,22 @@ or
 
 ## ⚡ How to use
 
-### ① Add the repository
+### Packaged version
+There is now a package in this repo that automatically configures xbps to use and trust this repo
+```shell
+xbps-install -SR https://github.com/grvn/void-packages/releases/latest/download/ grvn-void-repository
+```
+Answer `yes` when it asks if you want to import the key `ee:04:bb:97:bf:cd:bb:73:6e:97:85:e6:a2:29:0a:b1`
+
+
+### Manual version
+
+#### ① Add the repository
 ```shell
 printf "repository=https://github.com/grvn/void-packages/releases/latest/download/\n" > /etc/xbps.d/grvn-void-repository.conf
 ```
 
-### ② Sync and trust the signing key
+#### ② Sync and trust the signing key
 
 ```shell
 xbps-install -S
@@ -56,14 +66,14 @@ xbps-install -S
 
 > *__NOTE__*: First time running `xbps-install -S` you will be asked if you wish to import the repository key.
 > For glibc x86_64 it will be [ee:04:bb:97:bf:cd:bb:73:6e:97:85:e6:a2:29:0a:b1.plist](./repo-keys/x86_64/ee:04:bb:97:bf:cd:bb:73:6e:97:85:e6:a2:29:0a:b1.plist).<br/><br/>
-> **If you wish to script it**
+> **If you wish to script it instead**
 > ```shell
 > cp ./repo-keys/x86_64/ee:04:bb:97:bf:cd:bb:73:6e:97:85:e6:a2:29:0a:b1.plist /var/db/xbps/keys/ee:04:bb:97:bf:cd:bb:73:6e:97:85:e6:a2:29:0a:b1.plist
 > ```
 
-### ③ Repo is ready to use
+#### ③ Repo is ready to use
 
-#### 🔄 Updates?
+### 🔄 Updates?
 
 Once the repo is added, package updates will come automatically with:
 ```shell
@@ -74,15 +84,16 @@ xbps-install -Su
 | package | homepage | automatic update |
 |:--------|:---------|:-----------------|
 | `brave-browser` (stable) | https://www.brave.com/                            | :white_check_mark: |
+| `brave-origin`  (stable) | https://brave.com/origin/                         | :white_check_mark: |
 | `destilled-fonts`        | <opinionized list of fonts I want>                | :x: |
 | `dgop`                   | https://github.com/AvengeMedia/dgop               | :white_check_mark: |
 | `obsidian`.md            | https://obsidian.md/                              | :white_check_mark: |
-| `openshift-oc` (oc cli)  | https://github.com/openshift/oc                   | :white_check_mark: |
+| `openshift-oc`  (oc cli) | https://github.com/openshift/oc                   | :white_check_mark: |
 | `pexip-infinity-connect` | https://www.pexip.com/                            | :x: |
 | `rebos`                  | https://gitlab.com/Oglo12/rebos                   | :white_check_mark: |
 | `vesktop`                | https://vesktop.vencord.dev/                      | :white_check_mark: |
 | `wideriver`              | https://github.com/alex-courtis/wideriver         | :white_check_mark: |
-| `zen-browser` (stable)   | https://www.zen-browser.app/                      | :white_check_mark: |
+| `zen-browser`   (stable) | https://www.zen-browser.app/                      | :white_check_mark: |
 
 ## 📦 Archived packages
 | package | homepage | reason |
