@@ -1,0 +1,43 @@
+# Template file for 'brave-browser'
+pkgname=brave-origin
+version=1.91.175
+revision=1
+archs="x86_64"
+makedepends="unzip"
+short_desc="Fast, private and secure web browser with ad blocker"
+maintainer="Rickard <@>"
+license="Mozilla Public License Version 2.0"
+homepage="https://www.brave.com/"
+changelog="https://raw.githubusercontent.com/brave/brave-browser/refs/heads/master/CHANGELOG_DESKTOP_ORIGIN.md"
+distfiles="https://github.com/brave/brave-browser/releases/download/v${version}/${pkgname}-${version}-linux-amd64.zip"
+checksum=a8d80abb74793d8548a8dde07e408da3e237af210fbf4d0296c37d45b2744fcf
+conflicts="brave-browser>=0"
+
+do_extract() {
+  unzip "${XBPS_SRCDISTDIR}/${pkgname}-${version}/${pkgname}-${version}-linux-amd64.zip" -x "cron/*" -d ${wrksrc}
+}
+
+do_install() {
+  install -dm755 "${DESTDIR}/opt/brave.com/brave" "${DESTDIR}/usr/bin" "${DESTDIR}/usr/share/applications" "${DESTDIR}/usr/share/icons/hicolor" "${DESTDIR}/usr/share/licenses/brave-origin" "${DESTDIR}/usr/share/pixmaps"
+
+  vinstall "${FILESDIR}/brave-origin.desktop" 644 usr/share/applications/
+  vinstall "${FILESDIR}/com.brave.Origin.desktop" 644 usr/share/applications/
+
+  vcopy * opt/brave.com/brave
+
+  chmod 0755 "${DESTDIR}/opt/brave.com/brave/brave-origin"
+  ln -sf /opt/brave.com/brave/brave-origin ${DESTDIR}/usr/bin/brave-origin
+
+  chmod 4755 "${DESTDIR}/opt/brave.com/brave/chrome-sandbox"
+
+# Follow https://wiki.freepascal.org/Debian_package_structure#usr/share/pixmaps_directory and https://wiki.freepascal.org/Debian_package_structure#usr/share/hicolor_directory
+  vinstall product_logo_48.png 644 usr/share/pixmaps brave-origin.png
+  for size in 16 24 32 48 64 128 256; do
+    install -d ${DESTDIR}/usr/share/icons/hicolor/${size}x${size}/apps
+    vinstall product_logo_${size}.png 0644 usr/share/icons/hicolor/${size}x${size}/apps brave-origin.png
+  done
+}
+
+post_install() {
+  vlicense LICENSE
+}

@@ -1,0 +1,29 @@
+[Desktop Entry]
+# This is the same as brave-origin.desktop except NoDisplay=true prevents
+# duplicate menu entries. This is required to match the application ID
+# used by XDG desktop portal, which has stricter naming requirements.
+# The old desktop file is kept to preserve default browser settings.
+NoDisplay=true
+Version=1.0
+Name=Brave Origin
+GenericName=Web Browser
+Comment=Fast, private and secure web browser with ad blocker
+Exec=/usr/bin/brave %U
+StartupNotify=true
+Terminal=false
+Icon=brave-origin
+Type=Application
+Categories=Network;WebBrowser;
+Keywords=Internet;WWW;Browser;Web;Explorer
+MimeType=application/pdf;application/rdf+xml;application/rss+xml;application/xhtml_xml;application/xml;image/gif;image/jpeg;image/png;image/webp;text/html;text/xml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ipfs;x-scheme-handler/ipns;
+Actions=new-window;new-private-window;
+X-MultipleArgs=false
+StartupWMClass=brave-origin
+
+[Desktop Action new-window]
+Name=Open a New Window
+Exec=/usr/bin/brave
+
+[Desktop Action new-private-window]
+Name=Open a New Incognito Window
+Exec=/usr/bin/brave --incognito
