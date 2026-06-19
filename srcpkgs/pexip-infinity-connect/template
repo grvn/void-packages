@@ -1,25 +1,16 @@
 # Template file for 'pexip-infinity-connect'
 pkgname=pexip-infinity-connect
-version=1.13.2
+_buildnr_url=84309.0.0
+version=1.14.0
 revision=1
 archs="x86_64"
-#build_wrksrc=
-#build_style=gnu-configure
-#configure_args=""
-#make_build_args=""
-#make_install_args=""
-#conf_files=""
-#make_dirs="/var/log/dir 0755 root root"
 hostmakedepends="tar gzip"
-makedepends=""
-depends=""
 short_desc="Pexip simplifies video communication across borders, businesses and platforms. It empowers your organization with face-to-face collaboration, no matter the location or technology."
 maintainer="Rickard <@>"
 license="Apache-2.0, MIT"
 homepage="https://www.pexip.com/"
-changelog="https://docs.pexip.com/clients/connect_release_notes.htm"
-distfiles="https://www.pexip.com/hubfs/dev-assets/infinity-connect-download-files/${version}/pexip-infinity-connect_${version}-76975.0.0_linux-x64.tgz"
-checksum=b1a4568035b43f67eb7ffe08ed927ea49be7537cd7a16dbf39179426fcfb5ab5
+distfiles="https://www.pexip.com/hubfs/dev-assets/infinity-connect-download-files/${version}/pexip-infinity-connect_${version}-${_buildnr_url}_linux-x64.tgz"
+checksum=0b744edf147e71248c38515782a7218bc65fb16a2b9ac6853091e413ca63f097
 
 do_install() {
   vinstall pexip-infinity-connect.desktop 0644 usr/share/applications/
