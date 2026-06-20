@@ -42,6 +42,7 @@ rm -rf oc
 [[ ! ${GIT_SHORT_COMMIT} =~ ^[a-z0-9]+$ ]] && printf "got junk instead of git short commit\n" && exit 1
 
 sed -i "s|^version=.*$|version=${VERSION}|" "${TEMPLATE}"
+sed -i "s|^revision=.*$|revision=1|" "${TEMPLATE}"
 sed -i "s|^checksum=.*$|checksum=${SHA256}|" "${TEMPLATE}"
 sed -i "s|^_git_commit=.*$|_git_commit=${GIT_SHORT_COMMIT}|" "${TEMPLATE}"
 sed -i "s|^timestamp=.*$|timestamp=${TIMESTAMP}|" "${TEMPLATE}"

@@ -23,6 +23,7 @@ rm rebos.tar.gz
 [[ -n ${SHA256} && ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]] && printf "got junk instead of sha256\n" && exit 1
 
 sed -i "s|^version=.*$|version=${VERSION}|" "${TEMPLATE}"
+sed -i "s|^revision=.*$|revision=1|" "${TEMPLATE}"
 sed -i "s|^checksum=.*$|checksum=${SHA256}|" "${TEMPLATE}"
 
 printf "Rebos template updated\n"

@@ -19,6 +19,7 @@ export SHA256=$(gh release view ${LATEST_VERSION} -R ${REPO} --json assets --jq 
 [[ -n ${SHA256} && ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]] && printf "got junk instead of checksum\n" && exit 1
 
 sed -i "s|^version=.*$|version=${VERSION}|" "${TEMPLATE}"
+sed -i "s|^revision=.*$|revision=1|" "${TEMPLATE}"
 sed -i "s|^checksum=.*$|checksum=${SHA256}|" "${TEMPLATE}"
 
 printf "obsidian template updated\n"
