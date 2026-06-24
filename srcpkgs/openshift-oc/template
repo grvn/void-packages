@@ -24,7 +24,7 @@ nocross=yes
 go_ldflags="-X github.com/openshift/oc/pkg/version.commitFromGit=${_git_commit} -X github.com/openshift/oc/pkg/version.versionFromGit=v${version}"
 
 do_build() {
-  export SOURCE_GIT_COMMIT=${_git_commit} 
+  export SOURCE_GIT_COMMIT=${_git_commit}
   export OS_GIT_VERSION=v${version}
   mkdir -p docs/man/
   make oc
