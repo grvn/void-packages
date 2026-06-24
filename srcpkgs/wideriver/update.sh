@@ -19,8 +19,17 @@ printf "Latest version is: %s\nLatest built version is: %s\n" "${VERSION}" "${CU
 gh release download -R ${REPO} --archive=tar.gz --output "wideriver.tar.gz"
 export SHA256=$(sha256sum ./wideriver.tar.gz | cut -d ' ' -f1 )
 rm ./wideriver.tar.gz
-[[ -n ${SHA256} && ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]] && printf "got junk instead of sha256\n" && exit 1
 
+if [[ -z ${SHA256} ]]; then
+  printf "got nothing instead of checksum (empty)\n"
+  exit 1
+fi
+if [[ ! ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]]; then
+  printf "got junk instead of checksum (invalid format)\n"
+  exit 1
+fi
+
+printf "checksum OK\nchecksum=%s\n" "${SHA256}"
 sed -i "s|^version=.*$|version=${VERSION}|" "${TEMPLATE}"
 sed -i "s|^revision=.*$|revision=1|" "${TEMPLATE}"
 sed -i "s|^checksum=.*$|checksum=${SHA256}|" "${TEMPLATE}"

@@ -16,8 +16,17 @@ printf "Latest version is: %s\nLatest built version is: %s\n" "${VERSION}" "${CU
 [ "${CURRENT_VERSION}" = "${VERSION}" ] && printf "No new version to release\n" && exit 0
 
 export SHA256=$(curl --fail --location --retry 3 --retry-delay 2 --silent https://github.com/${REPO}/releases/download/v${VERSION}/brave-origin-${VERSION}-linux-amd64.zip.sha256 | cut -d ' ' -f1 )
-[[ -n ${SHA256} && ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]] && printf "got junk instead of sha256\n" && exit 1
 
+if [[ -z ${SHA256} ]]; then
+  printf "got nothing instead of checksum (empty)\n"
+  exit 1
+fi
+if [[ ! ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]]; then
+  printf "got junk instead of checksum (invalid format)\n"
+  exit 1
+fi
+
+printf "checksum OK\nchecksum=%s\n" "${SHA256}"
 sed -i "s|^version=.*$|version=${VERSION}|" "${TEMPLATE}"
 sed -i "s|^revision=.*$|revision=1|" "${TEMPLATE}"
 sed -i "s|^checksum=.*$|checksum=${SHA256}|" "${TEMPLATE}"

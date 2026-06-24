@@ -10,7 +10,7 @@ license="GPL-3.0-or-later"
 homepage="https://gitlab.com/Oglo12/rebos/"
 changelog="N/A"
 distfiles="https://gitlab.com/Oglo12/rebos/-/archive/v${version}/rebos-v${version}.tar.gz"
-checksum=fb5bd9c9d11712187bc0a4fcd8b438228d73951f920f08d35f23cb52dd051696 # 3.5.2
+checksum=fb5bd9c9d11712187bc0a4fcd8b438228d73951f920f08d35f23cb52dd051696
 
 post_install() {
   vdoc README.md

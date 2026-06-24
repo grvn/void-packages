@@ -15,9 +15,18 @@ CURRENT_VERSION=$(grep -E '^version=' "${TEMPLATE}" | cut -d= -f2)
 printf "Latest version is: %s\nLatest built version is: %s\n" "${VERSION}" "${CURRENT_VERSION}"
 [ "${CURRENT_VERSION}" = "${VERSION}" ] && printf "No new version to release\n" && exit 0
 
-export SHA256=$(gh release view ${LATEST_VERSION} -R ${REPO} --json assets --jq '.assets[] | select(.name=="zen.linux-x86_64.tar.xz") | .digest' | cut -d":" -f2)
-[[ -n ${SHA256} && ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]] && printf "got junk instead of checksum\n" && exit 1
+export SHA256=$(gh release view ${LATEST_VERSION} -R ${REPO} --json assets --jq '.assets[] | select(.name=="zen.linux-x86_64.tar.xz") | .digest | sub("^sha256:"; "")')
 
+if [[ -z ${SHA256} ]]; then
+  printf "got nothing instead of checksum (empty)\n"
+  exit 1
+fi
+if [[ ! ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]]; then
+  printf "got junk instead of checksum (invalid format)\n"
+  exit 1
+fi
+
+printf "checksum OK\nchecksum=%s\n" "${SHA256}"
 sed -i "s|^version=.*$|version=${VERSION}|" "${TEMPLATE}"
 sed -i "s|^revision=.*$|revision=1|" "${TEMPLATE}"
 sed -i "s|^checksum=.*$|checksum=${SHA256}|" "${TEMPLATE}"

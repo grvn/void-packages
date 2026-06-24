@@ -20,8 +20,16 @@ curl --output rebos.tar.gz https://gitlab.com/Oglo12/rebos/-/archive/${LATEST_VE
 export SHA256=$(sha256sum rebos.tar.gz | cut -d ' ' -f1)
 rm rebos.tar.gz
 
-[[ -n ${SHA256} && ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]] && printf "got junk instead of sha256\n" && exit 1
+if [[ -z ${SHA256} ]]; then
+  printf "got nothing instead of checksum (empty)\n"
+  exit 1
+fi
+if [[ ! ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]]; then
+  printf "got junk instead of checksum (invalid format)\n"
+  exit 1
+fi
 
+printf "checksum OK\nchecksum=%s\n" "${SHA256}"
 sed -i "s|^version=.*$|version=${VERSION}|" "${TEMPLATE}"
 sed -i "s|^revision=.*$|revision=1|" "${TEMPLATE}"
 sed -i "s|^checksum=.*$|checksum=${SHA256}|" "${TEMPLATE}"

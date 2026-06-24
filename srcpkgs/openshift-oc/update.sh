@@ -32,7 +32,15 @@ export VERSION=${VERSION%-*}
 curl --fail -sL --output oc.tar.gz https://github.com/openshift/oc/archive/refs/tags/${LATEST_VERSION}.tar.gz
 export SHA256=$(sha256sum ./oc.tar.gz | cut -d ' ' -f1 )
 rm ./oc.tar.gz
-[[ -n ${SHA256} && ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]] && printf "got junk instead of sha256\n" && exit 1
+
+if [[ -z ${SHA256} ]]; then
+  printf "got nothing instead of checksum (empty)\n"
+  exit 1
+fi
+if [[ ! ${SHA256} =~ ^[A-Fa-f0-9]{64}$ ]]; then
+  printf "got junk instead of checksum (invalid format)\n"
+  exit 1
+fi
 
 git clone --no-checkout --depth 1 --filter=blob:none --single-branch --branch ${LATEST_VERSION} https://github.com/openshift/oc.git oc
 cd oc
