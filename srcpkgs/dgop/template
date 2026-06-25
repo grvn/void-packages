@@ -10,7 +10,7 @@ maintainer="Rickard <@>"
 license="MIT"
 homepage="https://github.com/AvengeMedia/dgop"
 distfiles="https://github.com/AvengeMedia/dgop/archive/refs/tags/v${version}.tar.gz"
-checksum=788baa696d3dd307c1fff032407ca9200b4083256544b271f50746ad9ad06d4c
+checksum=2e45d94d2227bb596844681e66f948aeea4a09be3f7ee88dcbbf38938cabec32
 
 do_install() {
 	vbin bin/dgop

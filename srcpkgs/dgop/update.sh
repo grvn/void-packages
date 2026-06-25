@@ -15,7 +15,10 @@ CURRENT_VERSION=$(grep -E '^version=' "${TEMPLATE}" | cut -d= -f2)
 printf "Latest version is: %s\nLatest built version is: %s\n" "${VERSION}" "${CURRENT_VERSION}"
 [ "${CURRENT_VERSION}" = "${VERSION}" ] && printf "No new version to release\n" && exit 0
 
-export SHA256=$(curl --fail --location --retry 3 --retry-delay 2 --silent https://github.com/${REPO}/releases/download/v${VERSION}/dgop-linux-amd64.tar.gz.sha256 | cut -d ' ' -f1 )
+# We do not want the preprepped checksum files, need to download the binary and calculate it myself
+gh release download -R ${REPO} --archive=tar.gz --output "dgop.tar.gz"
+export SHA256=$(sha256sum ./dgop.tar.gz | cut -d ' ' -f1 )
+rm ./dgop.tar.gz
 
 if [[ -z ${SHA256} ]]; then
   printf "got nothing instead of checksum (empty)\n"
