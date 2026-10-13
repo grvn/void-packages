@@ -1,6 +1,6 @@
 # Template file for 'wideriver'
 pkgname=wideriver
-version=1.3.1
+version=1.4.0
 revision=1
 archs="x86_64*"
 hostmakedepends="pkg-config wayland-devel"
@@ -12,7 +12,7 @@ build_style="gnu-makefile"
 homepage="https://github.com/alex-courtis/wideriver"
 changelog="https://github.com/alex-courtis/wideriver/releases"
 distfiles="https://github.com/alex-courtis/wideriver/archive/refs/tags/${version}.tar.gz"
-checksum=6ccd45cab794311ab9ad08c9c53b09eac5eb7bd24efc34f19b58586aa598df9d
+checksum=bd54ce0a920925df953e83495053a8f4b43e7a3f8d8a1f079d270c6fd8d02046
 
 post_install() {
   vdoc README.md
