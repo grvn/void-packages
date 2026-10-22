@@ -1,6 +1,6 @@
 # Template file for 'vesktop'
 pkgname=vesktop
-version=1.6.7
+version=1.6.8
 revision=1
 archs="x86_64"
 hostmakedepends="tar"
@@ -9,7 +9,7 @@ maintainer="Rickard <@>"
 license="GNU General Public License v3.0"
 homepage="https://github.com/Vencord/Vesktop"
 distfiles="https://github.com/Vencord/Vesktop/releases/download/v${version}/vesktop-${version}.tar.gz"
-checksum=152786c72cf97f510b3a527829568083dd5c79b723cf459c13d430b6ca385b66
+checksum=477dc07e9da85cf3f86b890f00cebe328d82ef62a40790bb515f18de38845a46
 
 do_install() {
   install -dm755 "${DESTDIR}/opt/${pkgname}" "${DESTDIR}/usr/bin" "${DESTDIR}/usr/share/applications" "${DESTDIR}/usr/share/pixmaps"
