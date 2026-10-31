@@ -1,6 +1,6 @@
 # Template file for 'brave-browser'
 pkgname=brave-origin
-version=1.98.62
+version=1.98.63
 revision=1
 archs="x86_64"
 makedepends="unzip"
@@ -10,7 +10,7 @@ license="Mozilla Public License Version 2.0"
 homepage="https://www.brave.com/"
 changelog="https://raw.githubusercontent.com/brave/brave-browser/refs/heads/master/CHANGELOG_DESKTOP_ORIGIN.md"
 distfiles="https://github.com/brave/brave-browser/releases/download/v${version}/${pkgname}-${version}-linux-amd64.zip"
-checksum=fbabdb9db411f4ef44ab49b1d1c9fb932c156128a5ac54881b1199fb5505222f
+checksum=7714b3c2bb3e92c14f8f8ab373e2d298ff941abe1d81589c21c5f9227ac07c0b
 conflicts="brave-browser>=0"
 
 do_extract() {
